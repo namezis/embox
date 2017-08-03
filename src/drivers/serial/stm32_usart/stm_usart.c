@@ -209,5 +209,6 @@ const struct uart_diag DIAG_IMPL_NAME(__EMBUILD_MOD__) = {
 };
 
 static int uart_init(void) {
-	return uart_register(&stm32_uart0, &uart_defparams);
+	uart_register(&stm32_uart0, &uart_defparams);
+	return 0;
 }
