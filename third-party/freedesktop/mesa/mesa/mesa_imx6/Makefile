@@ -20,15 +20,28 @@ MESA_CPPFLAGS += $(SRC_DIR))/arch/$(ARCH)/include
 
 $(CONFIGURE) :
 	export EMBOX_GCC_LINK=full; \
-	export PKG_CONFIG_PATH=$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79:$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv;\
+	export ETNAVIV_CFLAGS="-I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79 -I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv -I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm"; \
+	export ETNAVIV_LIBS="-L$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv -ldrm_etnaviv"; \
+	export LIBDRM_CFLAGS="-I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79 -I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv -I$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm"; \
+	export LIBDRM_LIBS="-L$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/ -ldrm"; \
 	cd $(PKG_SOURCE_DIR) && aclocal && autoconf &&( \
-		./configure --host=arm-none-eabi --target=arm-none-eabi \
+		./configure --host=$(AUTOCONF_TARGET_TRIPLET) \
+			--target=$(AUTOCONF_TARGET_TRIPLET) \
 			--enable-static  --disable-shared \
-			--with-gallium-drivers=etnaviv --enable-dri=no --enable-gbm=no \
+			--with-gallium-drivers=etnaviv \
+			--disable-driglx-direct --disable-dri \
 			--disable-egl \
-			--disable-largefile --enable-gallium-llvm=no --enable-valgrind=no \
+			--disable-largefile --disable-valgrind \
+			--disable-gallium-llvm --disable-gallium-tests \
+			--disable-va \
+			--disable-gbm \
+			--disable-vdpau \
+			--disable-glx --disable-glx-tls \
+			--disable-asm \
+			--disable-gles1 --disable-gles2 \
 			CC=$(EMBOX_GCC) \
 			CXX=$(EMBOX_GXX) \
+			CPPFLAGS='$(MESA_CPPFLAGS)' \
 	)
 	touch $@
 
