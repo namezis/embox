@@ -14,9 +14,9 @@ PKG_PATCHES := patch.txt
 include $(EXTBLD_LIB)
 
 
-MESA_CPPFLAGS := -I$(SRC_DIR)/include -I$(SRC_DIR)/compat/cxx/include 
+MESA_CPPFLAGS := -I$(SRC_DIR)/include -I$(SRC_DIR)/compat/cxx/include
 MESA_CPPFLAGS += -I$(SRC_DIR)/compat/libc/include -I$(SRC_DIR)/compat/posix/include
-MESA_CPPFLAGS += $(SRC_DIR))/arch/$(ARCH)/include
+MESA_CPPFLAGS += -I$(SRC_DIR)/arch/$(ARCH)/include
 
 $(CONFIGURE) :
 	export EMBOX_GCC_LINK=full; \
@@ -28,8 +28,8 @@ $(CONFIGURE) :
 		./configure --host=$(AUTOCONF_TARGET_TRIPLET) \
 			--target=$(AUTOCONF_TARGET_TRIPLET) \
 			--enable-static  --disable-shared \
-			--with-gallium-drivers=etnaviv \
 			--enable-osmesa \
+			--with-gallium-drivers=etnaviv \
 			--disable-driglx-direct --disable-dri \
 			--disable-egl \
 			--disable-largefile --disable-valgrind \
@@ -48,11 +48,13 @@ $(CONFIGURE) :
 
 $(BUILD) :
 	cd $(PKG_SOURCE_DIR) && ( \
-		$(MAKE); \
+		$(MAKE) MAKEFLAGS='$(EMBOX_IMPORTED_MAKEFLAGS)'; \
 	)
 	touch $@
 
 $(INSTALL) :
-	cp $(PKG_SOURCE_DIR)/.libs/libdrm.a $(PKG_INSTALL_DIR)/libdrm.a
-	cp $(PKG_SOURCE_DIR)/etnaviv/.libs/libdrm_etnaviv.a $(PKG_INSTALL_DIR)/libdrm_etnaviv.a
+	cp $(PKG_SOURCE_DIR)/src/mesa/.libs/libmesa.a $(PKG_INSTALL_DIR)/libmesa.a
+	cp $(PKG_SOURCE_DIR)/src/mesa/.libs/libmesagallium.a $(PKG_INSTALL_DIR)/libmesagallium.a
+	cp $(PKG_SOURCE_DIR)/src/mapi/shared-glapi/.libs/libglapi.a $(PKG_INSTALL_DIR)/libglapi.a
+	cp $(PKG_SOURCE_DIR)/src/mesa/drivers/osmesa/.libs/libOSMesa.a $(PKG_INSTALL_DIR)/libOSMesa.a
 	touch $@
