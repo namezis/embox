@@ -29,6 +29,7 @@ $(CONFIGURE) :
 			--target=$(AUTOCONF_TARGET_TRIPLET) \
 			--enable-static  --disable-shared \
 			--with-gallium-drivers=etnaviv \
+			--enable-osmesa \
 			--disable-driglx-direct --disable-dri \
 			--disable-egl \
 			--disable-largefile --disable-valgrind \
