@@ -16,6 +16,7 @@ include $(EXTBLD_LIB)
 
 MESA_CPPFLAGS := -I$(SRC_DIR)/include -I$(SRC_DIR)/compat/cxx/include
 MESA_CPPFLAGS += -I$(SRC_DIR)/compat/libc/include -I$(SRC_DIR)/compat/posix/include
+MESA_CPPFLAGS += -I$(SRC_DIR)/compat/linux/include
 MESA_CPPFLAGS += -I$(SRC_DIR)/arch/$(ARCH)/include
 
 $(CONFIGURE) :
