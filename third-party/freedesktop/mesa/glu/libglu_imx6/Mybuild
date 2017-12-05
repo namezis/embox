@@ -1,0 +1,7 @@
+package third_party.freedesktop.mesa
+
+@BuildDepends(third_party.freedesktop.mesa.mesa_imx6)
+@Build(script="$(EXTERNAL_MAKE)")
+module  libglu_imx6 {
+	source "^BUILD/extbld/^MOD_PATH/install/libGLU.a"
+}
