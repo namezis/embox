@@ -27,3 +27,28 @@ module osdemo_fb {
 	depends third_party.freedesktop.mesa.mesa_osmesa
 	depends third_party.freedesktop.mesa.libglu_osmesa
 }
+
+@AutoCmd
+@Cmd(name = "osdemo_imx6",
+	help = "Adopted osdemo application from mesa_demo",
+	man = '''
+		NAME
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		SYNOPSIS
+			osdemo_fb
+		DESCRIPTION
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		AUTHORS
+			Anton Bondarev
+	''')
+@BuildDepends(third_party.freedesktop.mesa.mesa_imx6)
+@BuildDepends(third_party.freedesktop.mesa.libglu_imx6)
+@Build(stage=2,script="true")
+module osdemo_imx6 {
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_imx6/glu-9.0.0/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/include")
+	source "osdemo_fb.c"
+
+	depends third_party.freedesktop.mesa.mesa_imx6
+	depends third_party.freedesktop.mesa.libglu_imx6
+}
