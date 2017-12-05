@@ -1,6 +1,6 @@
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/include/c11/threads_posix.h mesa-17.0.3/include/c11/threads_posix.h
 --- mesa-17.0.3-orig/include/c11/threads_posix.h	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/include/c11/threads_posix.h	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/include/c11/threads_posix.h	2017-12-05 14:50:10.528976003 +0300
 @@ -35,6 +35,7 @@
  #include <unistd.h>
  #include <sched.h>
@@ -20,7 +20,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/include/c11
  
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/include/c99_alloca.h mesa-17.0.3/include/c99_alloca.h
 --- mesa-17.0.3-orig/include/c99_alloca.h	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/include/c99_alloca.h	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/include/c99_alloca.h	2017-12-05 14:50:10.528976003 +0300
 @@ -35,7 +35,7 @@
  
  #  define alloca _alloca
@@ -32,7 +32,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/include/c99
  
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compiler/Makefile.glsl.am mesa-17.0.3/src/compiler/Makefile.glsl.am
 --- mesa-17.0.3-orig/src/compiler/Makefile.glsl.am	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/src/compiler/Makefile.glsl.am	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/compiler/Makefile.glsl.am	2017-12-05 14:50:10.528976003 +0300
 @@ -53,7 +53,7 @@
  	glsl/tests/sampler-types-test			\
  	glsl/tests/uniform-initializer-test
@@ -44,7 +44,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compile
  	glsl/tests/blob_test.c
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compiler/Makefile.nir.am mesa-17.0.3/src/compiler/Makefile.nir.am
 --- mesa-17.0.3-orig/src/compiler/Makefile.nir.am	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/src/compiler/Makefile.nir.am	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/compiler/Makefile.nir.am	2017-12-05 14:50:10.528976003 +0300
 @@ -51,7 +51,7 @@
  	$(MKDIR_GEN)
  	$(PYTHON_GEN) $(srcdir)/nir/nir_opt_algebraic.py > $@ || ($(RM) $@; false)
@@ -56,7 +56,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compile
  	spirv/spirv2nir.c
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compiler/nir/nir_instr_set.c mesa-17.0.3/src/compiler/nir/nir_instr_set.c
 --- mesa-17.0.3-orig/src/compiler/nir/nir_instr_set.c	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/src/compiler/nir/nir_instr_set.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/compiler/nir/nir_instr_set.c	2017-12-05 14:50:10.528976003 +0300
 @@ -20,7 +20,6 @@
   * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   * IN THE SOFTWARE.
@@ -67,7 +67,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compile
  
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compiler/nir/nir_liveness.c mesa-17.0.3/src/compiler/nir/nir_liveness.c
 --- mesa-17.0.3-orig/src/compiler/nir/nir_liveness.c	2017-04-01 18:33:36.000000000 +0300
-+++ mesa-17.0.3/src/compiler/nir/nir_liveness.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/compiler/nir/nir_liveness.c	2017-12-05 14:50:10.528976003 +0300
 @@ -23,7 +23,6 @@
   * Authors:
   *    Jason Ekstrand (jason@jlekstrand.net)
@@ -78,7 +78,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/compile
  #include "nir_vla.h"
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium/auxiliary/hud/hud_context.c mesa-17.0.3/src/gallium/auxiliary/hud/hud_context.c
 --- mesa-17.0.3-orig/src/gallium/auxiliary/hud/hud_context.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/gallium/auxiliary/hud/hud_context.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/gallium/auxiliary/hud/hud_context.c	2017-12-05 14:50:10.528976003 +0300
 @@ -36,6 +36,7 @@
  #include <inttypes.h>
  #include <signal.h>
@@ -89,7 +89,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium
  #include "hud/hud_private.h"
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium/auxiliary/os/os_misc.c mesa-17.0.3/src/gallium/auxiliary/os/os_misc.c
 --- mesa-17.0.3-orig/src/gallium/auxiliary/os/os_misc.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/gallium/auxiliary/os/os_misc.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/gallium/auxiliary/os/os_misc.c	2017-12-05 14:50:10.528976003 +0300
 @@ -47,7 +47,7 @@
  #endif
  
@@ -110,7 +110,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium
  
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium/auxiliary/os/os_time.c mesa-17.0.3/src/gallium/auxiliary/os/os_time.c
 --- mesa-17.0.3-orig/src/gallium/auxiliary/os/os_time.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/gallium/auxiliary/os/os_time.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/gallium/auxiliary/os/os_time.c	2017-12-05 14:50:10.528976003 +0300
 @@ -36,6 +36,10 @@
  #include "pipe/p_defines.h"
  #include "util/u_atomic.h"
@@ -124,7 +124,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium
  #  include <sys/time.h> /* timeval */
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium/auxiliary/renderonly/renderonly.c mesa-17.0.3/src/gallium/auxiliary/renderonly/renderonly.c
 --- mesa-17.0.3-orig/src/gallium/auxiliary/renderonly/renderonly.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/gallium/auxiliary/renderonly/renderonly.c	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/gallium/auxiliary/renderonly/renderonly.c	2017-12-05 14:50:10.528976003 +0300
 @@ -26,6 +26,7 @@
  
  #include "renderonly/renderonly.h"
@@ -133,9 +133,21 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium
  #include <errno.h>
  #include <fcntl.h>
  #include <stdio.h>
+diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/gallium/drivers/etnaviv/Makefile.am mesa-17.0.3/src/gallium/drivers/etnaviv/Makefile.am
+--- mesa-17.0.3-orig/src/gallium/drivers/etnaviv/Makefile.am	2017-04-01 18:33:37.000000000 +0300
++++ mesa-17.0.3/src/gallium/drivers/etnaviv/Makefile.am	2017-12-05 15:06:16.654854698 +0300
+@@ -31,7 +31,7 @@
+ 
+ libetnaviv_la_SOURCES = $(C_SOURCES)
+ 
+-noinst_PROGRAMS = etnaviv_compiler
++#noinst_PROGRAMS = etnaviv_compiler
+ 
+ etnaviv_compiler_SOURCES = \
+ 	etnaviv_compiler_cmdline.c
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/main/compiler.h mesa-17.0.3/src/mesa/main/compiler.h
 --- mesa-17.0.3-orig/src/mesa/main/compiler.h	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/mesa/main/compiler.h	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/mesa/main/compiler.h	2017-12-05 14:50:10.532975834 +0300
 @@ -40,6 +40,13 @@
  
  #include "c99_compat.h" /* inline, __func__, etc. */
@@ -152,7 +164,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/ma
  extern "C" {
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/main/mm.h mesa-17.0.3/src/mesa/main/mm.h
 --- mesa-17.0.3-orig/src/mesa/main/mm.h	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/mesa/main/mm.h	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/mesa/main/mm.h	2017-12-05 14:50:10.532975834 +0300
 @@ -38,8 +38,13 @@
     struct mem_block *heap;
     unsigned ofs;
@@ -169,7 +181,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/ma
  
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/program/prog_instruction.h mesa-17.0.3/src/mesa/program/prog_instruction.h
 --- mesa-17.0.3-orig/src/mesa/program/prog_instruction.h	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/mesa/program/prog_instruction.h	2017-12-04 17:59:29.224333795 +0300
++++ mesa-17.0.3/src/mesa/program/prog_instruction.h	2017-12-05 14:50:10.532975834 +0300
 @@ -223,7 +223,7 @@
     enum prog_opcode Opcode;
     struct prog_src_register SrcReg[3];
@@ -212,7 +224,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/pr
      * For BRK, points to ENDLOOP
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/state_tracker/st_glsl_to_tgsi.cpp mesa-17.0.3/src/mesa/state_tracker/st_glsl_to_tgsi.cpp
 --- mesa-17.0.3-orig/src/mesa/state_tracker/st_glsl_to_tgsi.cpp	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/mesa/state_tracker/st_glsl_to_tgsi.cpp	2017-12-04 17:59:29.228334033 +0300
++++ mesa-17.0.3/src/mesa/state_tracker/st_glsl_to_tgsi.cpp	2017-12-05 14:50:10.532975834 +0300
 @@ -55,7 +55,7 @@
  #include "st_glsl_types.h"
  #include "st_nir.h"
@@ -233,7 +245,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/st
  static unsigned
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/vbo/vbo.h mesa-17.0.3/src/mesa/vbo/vbo.h
 --- mesa-17.0.3-orig/src/mesa/vbo/vbo.h	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/mesa/vbo/vbo.h	2017-12-04 17:59:29.228334033 +0300
++++ mesa-17.0.3/src/mesa/vbo/vbo.h	2017-12-05 14:50:10.532975834 +0300
 @@ -44,6 +44,7 @@
  struct gl_transform_feedback_object;
  
@@ -262,7 +274,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/mesa/vb
     GLint basevertex;
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/util/debug.c mesa-17.0.3/src/util/debug.c
 --- mesa-17.0.3-orig/src/util/debug.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/util/debug.c	2017-12-04 17:59:29.228334033 +0300
++++ mesa-17.0.3/src/util/debug.c	2017-12-05 14:50:10.532975834 +0300
 @@ -21,6 +21,7 @@
   * IN THE SOFTWARE.
   */
@@ -273,7 +285,7 @@ diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/util/de
  #include "debug.h"
 diff -aur -x configure -x Makefile.in -x aclocal.m4 mesa-17.0.3-orig/src/util/ralloc.c mesa-17.0.3/src/util/ralloc.c
 --- mesa-17.0.3-orig/src/util/ralloc.c	2017-04-01 18:33:37.000000000 +0300
-+++ mesa-17.0.3/src/util/ralloc.c	2017-12-04 17:59:29.228334033 +0300
++++ mesa-17.0.3/src/util/ralloc.c	2017-12-05 14:50:10.532975834 +0300
 @@ -636,8 +636,9 @@
     linear_header *new_node;
     linear_size_chunk *ptr;
