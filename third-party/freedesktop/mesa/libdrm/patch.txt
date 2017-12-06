@@ -64,3 +64,14 @@ diff -aur -x configure -x aclocal.m4 -x Makefile.in libdrm-2.4.79-orig/xf86drm.h
  
  #define DRM_IOCTL_NR(n)		_IOC_NR(n)
  #define DRM_IOC_VOID		_IOC_NONE
+@@ -85,5 +85,5 @@
+-#define DRM_DIR_NAME  "/dev/dri"
+-#define DRM_DEV_NAME  "%s/card%d"
+-#define DRM_CONTROL_DEV_NAME  "%s/controlD%d"
+-#define DRM_RENDER_DEV_NAME  "%s/renderD%d"
+-#define DRM_PROC_NAME "/proc/dri/" /* For backward Linux compatibility */
++#define DRM_DIR_NAME  "/dev/"
++#define DRM_DEV_NAME  "%s/card%d"
++#define DRM_CONTROL_DEV_NAME  "%s/controlD%d"
++#define DRM_RENDER_DEV_NAME  "%s/renderD%d"
++#define DRM_PROC_NAME "/proc/"
