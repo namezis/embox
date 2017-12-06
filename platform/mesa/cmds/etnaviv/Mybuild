@@ -1,0 +1,33 @@
+package embox.cmd
+
+@AutoCmd
+@Cmd(name = "etnaviv_2d_test",
+	help = "Adopted osdemo application from mesa_demo",
+	man = '''
+		NAME
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		SYNOPSIS
+			osdemo_fb
+		DESCRIPTION
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		AUTHORS
+			Anton Bondarev
+	''')
+@BuildDepends(third_party.freedesktop.mesa.mesa_imx6)
+@BuildDepends(third_party.freedesktop.mesa.libglu_imx6)
+@BuildDepends(third_party.freedesktop.mesa.libdrm_imx6)
+@Build(stage=2,script="true")
+module etnaviv_2d_test {
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_imx6/glu-9.0.0/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm/")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/")
+	source "etnaviv_2d_test.c"
+	source "write_bmp.c"
+
+	depends third_party.freedesktop.mesa.mesa_imx6
+	depends third_party.freedesktop.mesa.libglu_imx6
+	depends third_party.freedesktop.mesa.libdrm_imx6
+}
