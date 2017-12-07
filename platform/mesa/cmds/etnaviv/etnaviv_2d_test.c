@@ -165,12 +165,19 @@ int main(int argc, char *argv[])
 
 	drmVersionPtr version;
 	int fd, ret = 0;
-	printf("trace %s line %d\n", __func__, __LINE__);
-	fd = open(argv[1], O_RDWR);
-	if (fd < 0)
-		return 1;
 
-	printf("trace %s line %d\n", __func__, __LINE__);
+	if (argc < 2) {
+		printf("Missing DRM file name, assume /dev/card\n");
+		fd = open("/dev/card", O_RDWR);
+	} else {
+		fd = open(argv[1], O_RDWR);
+	}
+
+	if (fd < 0) {
+		printf("Failed to open DRM file\n");
+		return 1;
+	}
+
 	version = drmGetVersion(fd);
 	if (version) {
 		printf("Version: %d.%d.%d\n", version->version_major,
@@ -181,60 +188,54 @@ int main(int argc, char *argv[])
 		drmFreeVersion(version);
 	}
 
-	printf("trace %s line %d\n", __func__, __LINE__);
 	dev = etna_device_new(fd);
 	if (!dev) {
 		ret = 2;
+		printf("Failed to create Etnaviv device\n");
 		goto out;
 	}
 
-	printf("trace %s line %d\n", __func__, __LINE__);
 	/* TODO: we assume that core 0 is a 2D capable one */
 	gpu = etna_gpu_new(dev, 0);
 	if (!gpu) {
 		ret = 3;
+		printf("Failed to create Etnaviv GPU\n");
 		goto out_device;
 	}
 
-	printf("trace %s line %d\n", __func__, __LINE__);
 	pipe = etna_pipe_new(gpu, ETNA_PIPE_2D);
 	if (!pipe) {
 		ret = 4;
+		printf("Failed to create Etnaviv pipe\n");
 		goto out_gpu;
 	}
 
-	printf("trace %s line %d\n", __func__, __LINE__);
 	bmp = etna_bo_new(dev, bmp_size, ETNA_BO_UNCACHED);
 	if (!bmp) {
 		ret = 5;
+		printf("Failed to map Etnaviv BO\n");
 		goto out_pipe;
 	}
-	printf("trace %s line %d\n", __func__, __LINE__);
 	memset(etna_bo_map(bmp), 0, bmp_size);
 
-	printf("trace %s line %d\n", __func__, __LINE__);
 	stream = etna_cmd_stream_new(pipe, 0x300, NULL, NULL);
-	printf("trace %s line %d\n", __func__, __LINE__);
 	if (!stream) {
 		ret = 6;
+		printf("Failed to create Etnaviv command stream\n");
 		goto out_bo;
 	}
 
 	/* generate command sequence */
 	gen_cmd_stream(stream, bmp, width, height);
-	printf("trace %s line %d\n", __func__, __LINE__);
 
 	etna_cmd_stream_finish(stream);
-	printf("trace %s line %d\n", __func__, __LINE__);
 
 	bmp_dump32(etna_bo_map(bmp), width, height, false, "/tmp/etna.bmp");
-	printf("trace %s line %d\n", __func__, __LINE__);
 
 	etna_cmd_stream_del(stream);
-	printf("trace %s line %d\n", __func__, __LINE__);
 
 out_bo:
-    etna_bo_del(bmp);
+	etna_bo_del(bmp);
 
 out_pipe:
 	etna_pipe_del(pipe);
