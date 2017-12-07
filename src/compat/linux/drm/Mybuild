@@ -1,0 +1,21 @@
+package embox.compat.linux
+
+module drm {
+	option number log_level = 0
+
+	source "drm.c"
+	source "etnaviv/etnaviv_buffer.c"
+	source "etnaviv/etnaviv_drv.c"
+	source "etnaviv/etnaviv_gem_prime.c"
+	source "etnaviv/etnaviv_iommu.c"
+	source "etnaviv/etnaviv_cmdbuf.c"
+	source "etnaviv/etnaviv_dump.c"
+	source "etnaviv/etnaviv_gem_submit.c"
+	source "etnaviv/etnaviv_iommu_v2.c"
+	source "etnaviv/etnaviv_cmd_parser.c"
+	source "etnaviv/etnaviv_gem.c"
+	source "etnaviv/etnaviv_gpu.c"
+	source "etnaviv/etnaviv_mmu.c"
+
+	depends embox.driver.block_dvfs
+}
