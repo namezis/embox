@@ -43,4 +43,6 @@ typedef unsigned long int 	u32_t;
 
 #endif /* __ASSEMBLER__ */
 
+typedef uint32_t dma_addr_t;
+
 #endif /* COMPAT_LINUX_LINUX_TYPES_H_ */
