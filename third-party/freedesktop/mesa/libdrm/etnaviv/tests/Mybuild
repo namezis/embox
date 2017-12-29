@@ -14,7 +14,7 @@ package third_party.freedesktop.mesa
 	''')
 @BuildDepends(third_party.freedesktop.mesa.libdrm_imx6)
 module etnaviv_2d_test {
-	@IncludePath("^BUILD/extbld/^MOD_PATH/../libdrm_imx6/libdrm-2.4.79/include");
+	@IncludePath("^BUILD/extbld/^MOD_PATH/../libdrm_imx6/libdrm-2.4.79/include")
 	source "^BUILD/extbld/^MOD_PATH/../libdrm_imx6/install/etnaviv_2d_test.c"
 	depends third_party.freedesktop.mesa.libdrm_imx6
 }
