@@ -44,6 +44,5 @@ $(INSTALL) :
 	cp $(PKG_SOURCE_DIR)/.libs/libdrm.a $(PKG_INSTALL_DIR)/libdrm.a
 	cp $(PKG_SOURCE_DIR)/etnaviv/.libs/libdrm_etnaviv.a $(PKG_INSTALL_DIR)/libdrm_etnaviv.a
 
-	cp $(PKG_SOURCE_DIR)/tests/etnaviv/etnaviv_2d_test.c $(PKG_INSTALL_DIR)/etnaviv_2d_test.c
 	touch $@
 
