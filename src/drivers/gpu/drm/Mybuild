@@ -1,0 +1,6 @@
+package embox.driver.gpu.drm
+
+module drm_dev {
+	@IncludeExport(path="drm")
+	source "drm_priv.h"
+}
