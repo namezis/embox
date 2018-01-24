@@ -19,9 +19,10 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
 
 		if (ptr == NULL) {
 			errno = EPERM;
+			return MAP_FAILED;
 		}
 
-		return MAP_FAILED;
+		return ptr;
 	} else {
 		SET_ERRNO(ENOTSUP);
 		return MAP_FAILED;
