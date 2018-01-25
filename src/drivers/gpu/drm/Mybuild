@@ -1,6 +1,8 @@
 package embox.driver.gpu.drm
 
 module drm_dev {
-	@IncludeExport(path="drm")
-	source "drm_priv.h"
+	@IncludeExport(path="embox_drm")
+	source "drm_priv.h", "drm_gem.h", "drm_vma_manager.h", "drm_mm.h"
+
+	source "drm_gem.c"
 }

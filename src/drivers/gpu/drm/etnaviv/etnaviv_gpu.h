@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 
+#include <hal/reg.h>
 
 struct etnaviv_chip_identity {
 	/* Chip model. */
@@ -73,13 +74,42 @@ struct etnaviv_chip_identity {
 	uint8_t varyings_count;
 };
 
+struct etnaviv_cmdbuf;
 struct etnaviv_gpu {
 	struct drm_device *drm;
 
 	struct etnaviv_chip_identity identity;
+	void *mmio;
+
+	/* 'ring'-buffer: */
+	struct etnaviv_cmdbuf *buffer;
+
+	uint32_t idle_mask;
+
+	unsigned int freq_scale;
 };
 
 extern int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, uint32_t param,
 		uint64_t *value);
+
+
+
+static inline void gpu_write(struct etnaviv_gpu *gpu, uint32_t reg, uint32_t data)
+{
+	log_debug("gpu(%p) mmio(%p) + reg(%x): data(%x)", gpu, gpu->mmio, reg, data);
+	REG32_STORE(gpu->mmio + reg, data);
+}
+
+static inline uint32_t gpu_read(struct etnaviv_gpu *gpu, uint32_t reg)
+{
+	uint32_t val = 0;
+	log_debug("gpu(%p) mmio(%p) + reg(%x): val", gpu, gpu->mmio, reg, val);
+	val = REG32_LOAD(gpu->mmio + reg);
+	log_debug("gpu(%p) mmio(%p) + reg(%x): val", gpu, gpu->mmio, reg, val);
+	return val;
+}
+
+
+extern int etnaviv_gpu_init(struct etnaviv_gpu *gpu);
 
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GPU_H_ */

@@ -20,15 +20,19 @@
 
 #include <drivers/char_dev.h>
 #include <fs/dvfs.h>
+#include <drivers/common/memory.h>
+
 
 #include <drm.h>
 #include <etnaviv_drm.h>
 
-#include <drm/drm_priv.h>
+#include <embox_drm/drm_priv.h>
+#include <embox_drm/drm_gem.h>
 
 #include "etnaviv_drv.h"
 #include "etnaviv_gpu.h"
 #include "etnaviv_gem.h"
+#include "common.xml.h"
 
 #define VERSION_NAME      "IPU"
 #define VERSION_NAME_LEN  3
@@ -47,7 +51,7 @@ extern int etnaviv_ioctl_wait_fence(struct drm_device *dev, void *data, struct d
 /*
  * DRM ioctls:
  */
-#if 0
+
 static int etnaviv_ioctl_get_param(struct drm_device *dev, void *data,
 		struct drm_file *file)
 {
@@ -59,12 +63,12 @@ static int etnaviv_ioctl_get_param(struct drm_device *dev, void *data,
 		return -EINVAL;
 
 	gpu = priv->gpu[args->pipe];
+	log_debug("args->pipe = %d", args->pipe);
 	if (!gpu)
 		return -ENXIO;
 
 	return etnaviv_gpu_get_param(gpu, args->param, &args->value);
 }
-#endif
 
 int etnaviv_ioctl_gem_new(struct drm_device *dev, void *data, struct drm_file *file)
 {
@@ -78,13 +82,37 @@ int etnaviv_ioctl_gem_new(struct drm_device *dev, void *data, struct drm_file *f
 			args->flags, &args->handle);
 }
 
+int etnaviv_ioctl_gem_info(struct drm_device *dev, void *data, struct drm_file *file)
+{
+	struct drm_etnaviv_gem_info *args = data;
+	struct drm_gem_object *obj;
+	int ret;
+
+	if (args->pad)
+		return -EINVAL;
+
+	obj = drm_gem_object_lookup(file, args->handle);
+	if (!obj)
+		return -ENOENT;
+
+	ret = etnaviv_gem_mmap_offset(obj, &args->offset);
+
+	return ret;
+}
+
 static struct idesc_ops etnaviv_dev_idesc_ops;
 
 static struct drm_device etnaviv_drm_device;
 static struct drm_file etnaviv_drm_file;
+static struct etnaviv_drm_private etnaviv_drm_private;
+static struct etnaviv_gpu etnaviv_gpus[ETNA_MAX_PIPES];
+
+#define VIVANTE_2D_BASE 0x00134000
+#define VIVANTE_3D_BASE 0x00130000
 
 static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	struct file *file;
+	int i;
 
 	file = dvfs_alloc_file();
 	if (!file) {
@@ -95,6 +123,18 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 				.idesc_ops   = &etnaviv_dev_idesc_ops,
 		},
 	};
+
+	etnaviv_drm_device.dev_private = &etnaviv_drm_private;
+	for(i = 0; i < ETNA_MAX_PIPES; i ++) {
+		etnaviv_drm_private.gpu[i] = &etnaviv_gpus[i];
+	}
+	etnaviv_gpus[PIPE_ID_PIPE_2D].mmio = (void *)VIVANTE_2D_BASE;
+	etnaviv_gpus[PIPE_ID_PIPE_3D].mmio = (void *)0x00130000;
+
+	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
+	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
+
+
 	return &file->f_idesc;
 }
 
@@ -113,7 +153,7 @@ static ssize_t etnaviv_dev_read(struct idesc *desc, const struct iovec *iov, int
 
 static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data) {
 	drm_version_t *version;
-	struct drm_etnaviv_param *req;
+	//struct drm_etnaviv_param *req;
 	int nr = _IOC_NR(request);
 	struct drm_device *dev = &etnaviv_drm_device;
 	struct drm_file *file = &etnaviv_drm_file;
@@ -135,6 +175,7 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		};
 		break;
 	case 64: /* DRM_ETNAVIV_GET_PARAM */
+#if 0
 		req = data;
 		switch (req->param) {
 		case ETNAVIV_PARAM_GPU_MODEL:
@@ -147,12 +188,14 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 			log_debug("NIY DRM_ETNAVIV_GET_PARAM,param=0x%08x", req->param);
 			req->value = -1;
 		}
+#endif
+		etnaviv_ioctl_get_param(dev, data, file);
 		break;
 	case 66: /* DRM_ETNAVIV_GEM_NEW */
 		etnaviv_ioctl_gem_new(dev, data, file);
 		break;
 	case 67: /* DRM_ETNAVIV_GEM_INFO */
-		//etnaviv_ioctl_gem_info(dev, data, file);
+		etnaviv_ioctl_gem_info(dev, data, file);
 		break;
 	case 70: /* DRM_ETNAVIV_GEM_SUBMIT */
 		//etnaviv_ioctl_gem_submit(dev, data, file);
@@ -189,3 +232,15 @@ static struct idesc_ops etnaviv_dev_idesc_ops = {
 
 CHAR_DEV_DEF(ETNAVIV_DEV_NAME, &etnaviv_dev_ops, &etnaviv_dev_idesc_ops, NULL);
 
+static struct periph_memory_desc vivante3d_mem = {
+	.start = VIVANTE_3D_BASE,
+	.len   = 0x4000,
+};
+
+static struct periph_memory_desc vivante2d_mem = {
+	.start = VIVANTE_2D_BASE,
+	.len   = 0x4000,
+};
+
+PERIPH_MEMORY_DEFINE(vivante2d_mem);
+PERIPH_MEMORY_DEFINE(vivante3d_mem);

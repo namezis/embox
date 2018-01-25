@@ -8,19 +8,22 @@
 #ifndef SRC_DRIVERS_GPU_DRM_DRM_PRIV_H_
 #define SRC_DRIVERS_GPU_DRM_DRM_PRIV_H_
 
+#include <pthread.h>
+
+#include <linux/idr.h>
 
 struct reservation_object;
 
 struct drm_device  {
 	void *dev_private;
+	struct device *dev;		/**< Device structure of bus-device */
 };
 
 struct drm_file {
-	int tmp;
+	struct idr object_idr;
+	pthread_mutex_t table_lock;
+
 };
 
-struct drm_gem_object {
-	int tmp;
-};
 
 #endif /* SRC_DRIVERS_GPU_DRM_DRM_PRIV_H_ */
