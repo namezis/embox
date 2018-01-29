@@ -633,7 +633,7 @@ static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 #endif
 }
 
-
+extern int clk_enable(char *clk_name);
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 {
 	int ret;//, i;
@@ -644,6 +644,10 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 		return ret;
 	}
 #endif
+
+	clk_enable("gpu3d");
+	clk_enable("gpu2d");
+	clk_enable("openvg");
 
 	log_debug("gpu(%p)", gpu);
 	etnaviv_hw_identify(gpu);
