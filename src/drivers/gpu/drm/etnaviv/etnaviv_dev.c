@@ -21,7 +21,7 @@
 #include <drivers/char_dev.h>
 #include <fs/dvfs.h>
 #include <drivers/common/memory.h>
-
+#include <drivers/power/imx.h>
 
 #include <drm.h>
 #include <etnaviv_drm.h>
@@ -110,6 +110,8 @@ static struct etnaviv_gpu etnaviv_gpus[ETNA_MAX_PIPES];
 #define VIVANTE_2D_BASE 0x00134000
 #define VIVANTE_3D_BASE 0x00130000
 
+extern int clk_enable(char *clk_name);
+extern int clk_disable(char *clk_name);
 static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	struct file *file;
 	int i;
@@ -129,7 +131,14 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 		etnaviv_drm_private.gpu[i] = &etnaviv_gpus[i];
 	}
 	etnaviv_gpus[PIPE_ID_PIPE_2D].mmio = (void *)VIVANTE_2D_BASE;
-	etnaviv_gpus[PIPE_ID_PIPE_3D].mmio = (void *)0x00130000;
+	etnaviv_gpus[PIPE_ID_PIPE_3D].mmio = (void *)VIVANTE_3D_BASE;
+
+	imx_gpu_power_set(1);
+
+	clk_enable("gpu3d");
+	clk_enable("gpu2d");
+	clk_enable("openvg");
+	clk_enable("vpu");
 
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
