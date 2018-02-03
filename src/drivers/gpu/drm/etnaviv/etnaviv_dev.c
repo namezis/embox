@@ -19,9 +19,10 @@
 #include <util/err.h>
 
 #include <drivers/char_dev.h>
-#include <fs/dvfs.h>
 #include <drivers/common/memory.h>
 #include <drivers/power/imx.h>
+#include <fs/dvfs.h>
+#include <kernel/irq.h>
 
 #include <drm.h>
 #include <etnaviv_drm.h>
@@ -33,6 +34,7 @@
 #include "etnaviv_gpu.h"
 #include "etnaviv_gem.h"
 #include "common.xml.h"
+#include "state_hi.xml.h"
 
 #define VERSION_NAME      "IPU"
 #define VERSION_NAME_LEN  3
@@ -43,10 +45,12 @@
 
 #define ETNAVIV_DEV_NAME "card"
 
+/* Interrupt numbers */
+#define GPU3D_IRQ	OPTION_GET(NUMBER,gpu3d_irq)
+#define R2D_GPU2D_IRQ	OPTION_GET(NUMBER,r2d_gpu2d_irq)
+#define V2D_GPU2D_IRQ	OPTION_GET(NUMBER,v2d_gpu2d_irq)
 
 extern int etnaviv_ioctl_wait_fence(struct drm_device *dev, void *data, struct drm_file *file);
-
-
 
 /*
  * DRM ioctls:
@@ -110,6 +114,42 @@ static struct etnaviv_gpu etnaviv_gpus[ETNA_MAX_PIPES];
 #define VIVANTE_2D_BASE 0x00134000
 #define VIVANTE_3D_BASE 0x00130000
 
+static irq_return_t etna_irq_handler(unsigned int irq, void *data)
+{
+	struct etnaviv_gpu *gpu = data;
+	irq_return_t ret = IRQ_NONE;
+
+	uint32_t intr = gpu_read(gpu, VIVS_HI_INTR_ACKNOWLEDGE);
+
+	if (intr != 0) {
+		log_debug("intr 0x%08x", intr);
+
+		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR) {
+			log_error("AXI bus error");
+			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR;
+		}
+
+		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION) {
+			int i;
+
+			log_error("MMU fault status 0x%08x",
+				gpu_read(gpu, VIVS_MMUv2_STATUS));
+			for (i = 0; i < 4; i++) {
+				log_error("MMU %d fault addr 0x%08x\n",
+					i, gpu_read(gpu,
+					VIVS_MMUv2_EXCEPTION_ADDR(i)));
+			}
+			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION;
+		}
+
+		log_debug("no error");
+		ret = IRQ_HANDLED;
+	}
+
+	return ret;
+}
+
+
 extern int clk_enable(char *clk_name);
 extern int clk_disable(char *clk_name);
 static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
@@ -132,6 +172,31 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	}
 	etnaviv_gpus[PIPE_ID_PIPE_2D].mmio = (void *)VIVANTE_2D_BASE;
 	etnaviv_gpus[PIPE_ID_PIPE_3D].mmio = (void *)VIVANTE_3D_BASE;
+
+
+	if (irq_attach(	GPU3D_IRQ,
+	                etna_irq_handler,
+	                0,
+	                &etnaviv_gpus[PIPE_ID_PIPE_3D],
+	                "i.MX6 GPU3D")) {
+		return NULL;
+	}
+
+	if (irq_attach(	R2D_GPU2D_IRQ,
+	                etna_irq_handler,
+	                0,
+	                &etnaviv_gpus[PIPE_ID_PIPE_2D],
+	                "i.MX6 GPU2D")) {
+		return NULL;
+	}
+
+	if (irq_attach(	V2D_GPU2D_IRQ,
+	                etna_irq_handler,
+	                0,
+	                &etnaviv_gpus[PIPE_ID_PIPE_2D],
+	                "i.MX6 GPU2D")) {
+		return NULL;
+	}
 
 	imx_gpu_power_set(1);
 

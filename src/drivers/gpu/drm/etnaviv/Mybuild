@@ -3,6 +3,10 @@ package embox.driver.gpu
 @BuildDepends(third_party.freedesktop.mesa.libdrm_imx6)
 @Build(stage=2)
 module etnaviv_drm {
+	option number gpu3d_irq=41
+	option number r2d_gpu2d_irq=42
+	option number v2d_gpu2d_irq=43
+
 	option number log_level=1
 
 	@IncludePath("$(EXTERNAL_BUILD_DIR)/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm")
