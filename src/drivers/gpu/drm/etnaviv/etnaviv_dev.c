@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -149,7 +150,6 @@ static irq_return_t etna_irq_handler(unsigned int irq, void *data)
 	return ret;
 }
 
-
 extern int clk_enable(char *clk_name);
 extern int clk_disable(char *clk_name);
 static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
@@ -207,7 +207,6 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
-
 
 	return &file->f_idesc;
 }
@@ -272,7 +271,8 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		etnaviv_ioctl_gem_info(dev, data, file);
 		break;
 	case 70: /* DRM_ETNAVIV_GEM_SUBMIT */
-		//etnaviv_ioctl_gem_submit(dev, data, file);
+		etnaviv_ioctl_gem_submit(dev, data, file);
+	printf("trace %s %d\n", __func__, __LINE__);
 		break;
 	case 71: /* DRM_ETNAVIV_WAIT_FENCE */
 		//etnaviv_ioctl_wait_fence(dev, data, file);

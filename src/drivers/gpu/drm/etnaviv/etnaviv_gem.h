@@ -15,6 +15,9 @@
 #include <embox_drm/drm_priv.h>
 #include <embox_drm/drm_gem.h>
 
+#include "etnaviv_compat.h"
+#include "etnaviv_cmdbuf.h"
+
 struct etnaviv_gpu;
 struct etnaviv_gem_ops;
 struct etnaviv_gem_object;
@@ -27,6 +30,7 @@ struct etnaviv_gem_object {
 	struct list_head gem_node;
 	struct etnaviv_gpu *gpu;     /* non-null if active */
 
+	int flags;
 };
 
 struct vm_area_struct;
@@ -59,5 +63,36 @@ extern int etnaviv_ioctl_gem_info(struct drm_device *dev, void *data,
 
 extern int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data,
 		struct drm_file *file);
+
+struct etnaviv_gem_submit_bo {
+u32 flags;
+struct etnaviv_gem_object *obj;
+struct etnaviv_vram_mapping *mapping;
+};
+
+
+struct etnaviv_gem_submit {
+	struct drm_device *dev;
+	struct etnaviv_gpu *gpu;
+	struct ww_acquire_ctx ticket;
+	struct dma_fence *fence;
+	unsigned int nr_bos;
+	struct etnaviv_gem_submit_bo bos[0];
+	u32 flags;
+};
+
+struct etnaviv_vram_mapping {
+	struct list_head obj_node;
+	struct list_head scan_node;
+	struct list_head mmu_node;
+	struct etnaviv_gem_object *object;
+	struct etnaviv_iommu *mmu;
+	struct drm_mm_node vram_node;
+	unsigned int use;
+	u32 iova;
+};
+
+extern  int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
+	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf);
 
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GEM_H_ */

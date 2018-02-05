@@ -14,6 +14,7 @@
 #include <linux/kernel.h>
 #include <mem/sysmalloc.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define GFP_TEMORARY  0
 #define GFP_KERNEL    0
@@ -59,10 +60,24 @@ static inline int order_base_2(int q) {
 #define u32 uint32_t
 #define u16 uint16_t
 #define u8 uint8_t
+#define s32 u32
+
+#define SZ_4K 4096
 
 #define __initconst
 #define __init
+#define __iomem
 
 #define BIT(n) (1 << (n))
+
+struct work_struct;
+struct dma_buf_attachment;
+struct vm_fault;
+struct platform_device;
+struct drm_device;
+struct drm_file;
+struct file;
+struct drm_gem_object;
+struct timespec;
 
 #endif

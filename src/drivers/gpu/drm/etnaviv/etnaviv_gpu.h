@@ -11,6 +11,9 @@
 #include <stdint.h>
 
 #include <hal/reg.h>
+#include <util/log.h>
+
+#include "etnaviv_mmu.h"
 
 struct etnaviv_chip_identity {
 	/* Chip model. */
@@ -87,6 +90,11 @@ struct etnaviv_gpu {
 	uint32_t idle_mask;
 
 	unsigned int freq_scale;
+	struct etnaviv_cmdbuf_suballoc *cmdbuf_suballoc;
+
+	struct etnaviv_iommu mmu;
+
+	int exec_state;
 };
 
 extern int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, uint32_t param,
@@ -111,5 +119,12 @@ static inline uint32_t gpu_read(struct etnaviv_gpu *gpu, uint32_t reg)
 
 
 extern int etnaviv_gpu_init(struct etnaviv_gpu *gpu);
+
+extern void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
+	struct etnaviv_cmdbuf *cmdbuf);
+
+extern void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, u32 address, u16 prefetch);
+
+extern int etnaviv_gpu_wait_idle(struct etnaviv_gpu *gpu, unsigned int timeout_ms);
 
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GPU_H_ */
