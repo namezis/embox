@@ -31,7 +31,11 @@ struct sg_table;
 struct drm_mm_node;
 
 struct iommu_ops {
-	int stub;
+	void (*domain_free)(struct iommu_domain *domain);
+	int (*map)(struct iommu_domain *domain, unsigned long iova, phys_addr_t paddr, size_t size, int prot);
+	size_t (*unmap)(struct iommu_domain *domain, unsigned long iova, size_t size);
+	phys_addr_t (*iova_to_phys)(struct iommu_domain *domain, dma_addr_t iova);
+	int pgsize_bitmap;
 };
 
 struct etnaviv_iommu_ops {

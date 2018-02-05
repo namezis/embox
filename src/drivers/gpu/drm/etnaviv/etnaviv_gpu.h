@@ -95,6 +95,8 @@ struct etnaviv_gpu {
 	struct etnaviv_iommu mmu;
 
 	int exec_state;
+
+	uint32_t memory_base;
 };
 
 extern int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, uint32_t param,

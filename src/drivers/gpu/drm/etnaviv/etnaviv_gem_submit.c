@@ -336,31 +336,25 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	void *stream;
 	int ret;
 
-	printf("trace %s %d\n", __func__, __LINE__);
-
 	if (args->pipe >= ETNA_MAX_PIPES)
 		return -EINVAL;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	gpu = priv->gpu[args->pipe];
 	if (!gpu)
 		return -ENXIO;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (args->stream_size % 4) {
 		log_error("non-aligned cmdstream buffer size: %u\n",
 			  args->stream_size);
 		return -EINVAL;
 	}
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (args->exec_state != ETNA_PIPE_3D &&
 	    args->exec_state != ETNA_PIPE_2D &&
 	    args->exec_state != ETNA_PIPE_VG) {
 		DRM_ERROR("invalid exec_state: 0x%x\n", args->exec_state);
 		return -EINVAL;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 
 	//if (args->flags & ~ETNA_SUBMIT_FLAGS) {
 	//	DRM_ERROR("invalid flags: 0x%x\n", args->flags);
@@ -372,30 +366,21 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	 * one go, and do this outside of any locks.
 	 */
 	bos = drm_malloc_ab(args->nr_bos, sizeof(*bos));
-	printf("trace %s %d\n", __func__, __LINE__);
 	relocs = drm_malloc_ab(args->nr_relocs, sizeof(*relocs));
-	printf("trace %s %d\n", __func__, __LINE__);
 //	stream = at//drm_malloc_ab(1, args->stream_size);
-	printf("trace %s %d\n", __func__, __LINE__);
-	printf("gpu %p, args %p\n", gpu, args);
 	cmdbuf = etnaviv_cmdbuf_new(gpu->cmdbuf_suballoc,
 				    ALIGN(args->stream_size, 8) + 8,
 				    args->nr_bos);
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (!bos || !relocs || !cmdbuf) {
 		ret = -ENOMEM;
 		goto err_submit_cmds;
 	}
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	cmdbuf->exec_state = args->exec_state;
-	printf("trace %s %d\n", __func__, __LINE__);
 	cmdbuf->ctx = file->driver_priv;
-	printf("trace %s %d\n", __func__, __LINE__);
 
 	ret = copy_from_user(bos, u64_to_user_ptr(args->bos),
 			     args->nr_bos * sizeof(*bos));
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (ret) {
 		ret = -EFAULT;
 		goto err_submit_cmds;
@@ -403,7 +388,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	ret = copy_from_user(relocs, u64_to_user_ptr(args->relocs),
 			     args->nr_relocs * sizeof(*relocs));
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (ret) {
 		ret = -EFAULT;
 		goto err_submit_cmds;
@@ -429,7 +413,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	//}
 
 	submit = submit_create(dev, gpu, args->nr_bos);
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (!submit) {
 		ret = -ENOMEM;
 		goto err_submit_cmds;
@@ -437,7 +420,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	submit->flags = 0;//args->flags;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	/* ret = submit_lookup_objects(submit, file, bos, args->nr_bos);
 	printf("trace %s %d\n", __func__, __LINE__);
 	if (ret)
@@ -447,13 +429,11 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto err_submit_objects;
 */
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
 				      relocs, args->nr_relocs)) {
 		ret = -EINVAL;
 		goto err_submit_objects;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 #if 0
 	if (args->flags & ETNA_SUBMIT_FENCE_FD_IN) {
 		in_fence = sync_file_get_fence(args->fence_fd);
@@ -478,13 +458,11 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto err_submit_objects;
 #endif
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (0) {
 	ret = submit_pin_objects(submit);
 	if (ret)
 		goto out;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 	static uint8_t tb[1024 * 1024] __attribute__ ((aligned(0x1000)));
 	memcpy(tb, stream, args->stream_size);
 	stream = &tb[0];
@@ -494,14 +472,10 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto out;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 	memcpy(cmdbuf->vaddr, stream, args->stream_size);
-	printf("trace %s %d\n", __func__, __LINE__);
 	cmdbuf->user_size = ALIGN(args->stream_size, 8);
 	cmdbuf->vaddr = stream;
-	printf("trace %s %d\n", __func__, __LINE__);
 	ret = etnaviv_gpu_submit(gpu, submit, cmdbuf);
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (ret == 0)
 		cmdbuf = NULL;
 #if 0
@@ -524,9 +498,7 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	args->fence = submit->fence->seqno;
 #endif
 out:
-	printf("trace %s %d\n", __func__, __LINE__);
 	submit_unpin_objects(submit);
-	printf("trace %s %d\n", __func__, __LINE__);
 
 	/*
 	 * If we're returning -EAGAIN, it may be due to the userptr code

@@ -216,10 +216,12 @@ static void etnaviv_dev_close(struct idesc *desc) {
 }
 
 static ssize_t etnaviv_dev_write(struct idesc *desc, const struct iovec *iov, int cnt) {
+	log_debug("trace");
 	return 0;
 }
 
 static ssize_t etnaviv_dev_read(struct idesc *desc, const struct iovec *iov, int cnt) {
+	log_debug("trace");
 	return 0;
 }
 

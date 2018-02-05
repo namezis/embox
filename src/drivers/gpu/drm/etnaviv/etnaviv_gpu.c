@@ -649,7 +649,7 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 		ret = -ENXIO;
 		goto fail;
 	}
-
+#endif
 	/*
 	 * Set the GPU linear window to be at the end of the DMA window, where
 	 * the CMA area is likely to reside. This ensures that we are able to
@@ -661,17 +661,17 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 	 */
 	if (!(gpu->identity.features & chipFeatures_PIPE_3D) ||
 	    (gpu->identity.minor_features0 & chipMinorFeatures0_MC20)) {
-		u32 dma_mask = (u32)dma_get_required_mask(gpu->dev);
+		u32 dma_mask = (u32)dma_get_required_mask(gpu);
 		if (dma_mask < PHYS_OFFSET + SZ_2G)
 			gpu->memory_base = PHYS_OFFSET;
 		else
 			gpu->memory_base = dma_mask - SZ_2G + 1;
 	} else if (PHYS_OFFSET >= SZ_2G) {
-		dev_info(gpu->dev, "Need to move linear window on MC1.0, disabling TS\n");
+		log_info("Need to move linear window on MC1.0, disabling TS");
 		gpu->memory_base = PHYS_OFFSET;
 		gpu->identity.features &= ~chipFeatures_FAST_CLEAR;
 	}
-#endif
+
 	if (etnaviv_hw_reset(gpu)) {
 		log_error("GPU reset failed");
 		return -1;

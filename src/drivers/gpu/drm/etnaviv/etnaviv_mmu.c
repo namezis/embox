@@ -283,8 +283,7 @@ int etnaviv_iommu_init(struct etnaviv_gpu *gpu) {
 	memset(mmu, 0, sizeof(*mmu));
 
 	if (!(gpu->identity.minor_features1 & chipMinorFeatures1_MMU_VERSION)) {
-		log_error("iommu v1 NIY");
-//		etnaviv_iommuv1_domain_init(gpu);
+		etnaviv_iommuv1_domain_init(gpu);
 		mmu->version = ETNAVIV_IOMMU_V1;
 	} else {
 		etnaviv_iommuv2_domain_init(gpu);
@@ -308,8 +307,7 @@ int etnaviv_iommu_init(struct etnaviv_gpu *gpu) {
 void etnaviv_iommu_restore(struct etnaviv_gpu *gpu)
 {
 	if (gpu->mmu.version == ETNAVIV_IOMMU_V1) {
-		log_error("iommuv1 is not supported");
-		//etnaviv_iommuv1_restore(gpu);
+		etnaviv_iommuv1_restore(gpu);
 	} else {
 		etnaviv_iommuv2_restore(gpu);
 	}

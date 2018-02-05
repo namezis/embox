@@ -63,6 +63,8 @@ static inline int order_base_2(int q) {
 #define s32 u32
 
 #define SZ_4K 4096
+#define SZ_2M (2 * 1024 * 1024)
+#define SZ_2G ((long long) 2 * 1024 * 1024 * 1024)
 
 #define __initconst
 #define __init
@@ -79,5 +81,13 @@ struct drm_file;
 struct file;
 struct drm_gem_object;
 struct timespec;
+
+typedef int phys_addr_t;
+
+#define PHYS_OFFSET 0 /* Start of RAM */
+
+static inline int dma_get_required_mask(void *dev) {
+	return 0x1FFFFFFF; /* 512 MB */
+}
 
 #endif

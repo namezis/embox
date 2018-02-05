@@ -14,16 +14,12 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <linux/iommu.h>
-#include <linux/platform_device.h>
-#include <linux/sizes.h>
-#include <linux/slab.h>
-#include <linux/dma-mapping.h>
-#include <linux/bitops.h>
+#include <asm-generic/dma-mapping.h>
 
 #include "etnaviv_gpu.h"
 #include "etnaviv_mmu.h"
-#include "etnaviv_iommu.h"
+#include "etnaviv_compat.h"
+//#include "etnaviv_iommu.h"
 #include "state_hi.xml.h"
 
 #define PT_SIZE		SZ_2M
@@ -37,17 +33,18 @@ struct etnaviv_iommu_domain_pgtable {
 };
 
 struct etnaviv_iommu_domain {
-	struct iommu_domain domain;
+	//struct iommu_domain domain;
 	struct device *dev;
 	void *bad_page_cpu;
 	dma_addr_t bad_page_dma;
+	struct iommu_ops *ops;
 	struct etnaviv_iommu_domain_pgtable pgtable;
-	spinlock_t map_lock;
+	//spinlock_t map_lock;
 };
 
-static struct etnaviv_iommu_domain *to_etnaviv_domain(struct iommu_domain *domain)
+static struct etnaviv_iommu_domain *to_etnaviv_domain(void *domain)
 {
-	return container_of(domain, struct etnaviv_iommu_domain, domain);
+	return domain;
 }
 
 static int pgtable_alloc(struct etnaviv_iommu_domain_pgtable *pgtable,
@@ -115,7 +112,7 @@ static int __etnaviv_iommu_init(struct etnaviv_iommu_domain *etnaviv_domain)
 		etnaviv_domain->pgtable.pgtable[i] =
 			etnaviv_domain->bad_page_dma;
 
-	spin_lock_init(&etnaviv_domain->map_lock);
+	//spin_lock_init(&etnaviv_domain->map_lock);
 
 	return 0;
 }
@@ -141,9 +138,9 @@ static int etnaviv_iommuv1_map(struct iommu_domain *domain, unsigned long iova,
 	if (size != SZ_4K)
 		return -EINVAL;
 
-	spin_lock(&etnaviv_domain->map_lock);
+	//spin_lock(&etnaviv_domain->map_lock);
 	pgtable_write(&etnaviv_domain->pgtable, iova, paddr);
-	spin_unlock(&etnaviv_domain->map_lock);
+	//spin_unlock(&etnaviv_domain->map_lock);
 
 	return 0;
 }
@@ -156,10 +153,10 @@ static size_t etnaviv_iommuv1_unmap(struct iommu_domain *domain,
 	if (size != SZ_4K)
 		return -EINVAL;
 
-	spin_lock(&etnaviv_domain->map_lock);
+	//spin_lock(&etnaviv_domain->map_lock);
 	pgtable_write(&etnaviv_domain->pgtable, iova,
 		      etnaviv_domain->bad_page_dma);
-	spin_unlock(&etnaviv_domain->map_lock);
+	//spin_unlock(&etnaviv_domain->map_lock);
 
 	return SZ_4K;
 }
@@ -184,7 +181,7 @@ static void etnaviv_iommuv1_dump(struct iommu_domain *domain, void *buf)
 	memcpy(buf, etnaviv_domain->pgtable.pgtable, PT_SIZE);
 }
 
-static const struct etnaviv_iommu_ops etnaviv_iommu_ops = {
+static struct etnaviv_iommu_ops etnaviv_iommu_ops = {
 	.ops = {
 		.domain_free = etnaviv_domain_free,
 		.map = etnaviv_iommuv1_map,
@@ -199,7 +196,7 @@ static const struct etnaviv_iommu_ops etnaviv_iommu_ops = {
 void etnaviv_iommuv1_restore(struct etnaviv_gpu *gpu)
 {
 	struct etnaviv_iommu_domain *etnaviv_domain =
-			to_etnaviv_domain(gpu->mmu->domain);
+			to_etnaviv_domain(gpu->mmu.domain);
 	u32 pgtable;
 
 	/* set base addresses */
@@ -219,30 +216,25 @@ void etnaviv_iommuv1_restore(struct etnaviv_gpu *gpu)
 	gpu_write(gpu, VIVS_MC_MMU_RA_PAGE_TABLE, pgtable);
 }
 
-struct iommu_domain *etnaviv_iommuv1_domain_alloc(struct etnaviv_gpu *gpu)
-{
+int etnaviv_iommuv1_domain_init(struct etnaviv_gpu *gpu) {
 	struct etnaviv_iommu_domain *etnaviv_domain;
 	int ret;
 
-	etnaviv_domain = kzalloc(sizeof(*etnaviv_domain), GFP_KERNEL);
-	if (!etnaviv_domain)
-		return NULL;
+	etnaviv_domain = (void*) &gpu->mmu.domain;
 
-	etnaviv_domain->dev = gpu->dev;
+	memset(etnaviv_domain, 0, sizeof(*etnaviv_domain));
 
-	etnaviv_domain->domain.type = __IOMMU_DOMAIN_PAGING;
-	etnaviv_domain->domain.ops = &etnaviv_iommu_ops.ops;
-	etnaviv_domain->domain.pgsize_bitmap = SZ_4K;
-	etnaviv_domain->domain.geometry.aperture_start = GPU_MEM_START;
-	etnaviv_domain->domain.geometry.aperture_end = GPU_MEM_START + PT_ENTRIES * SZ_4K - 1;
+	//etnaviv_domain->dev = gpu->dev;
+	//etnaviv_domain->domain.type = __IOMMU_DOMAIN_PAGING;
+	etnaviv_domain->ops = &etnaviv_iommu_ops.ops;
+	//etnaviv_domain->pgsize_bitmap = SZ_4K;
+	gpu->mmu.start_addr = GPU_MEM_START;
+	gpu->mmu.end_addr = GPU_MEM_START + PT_ENTRIES * SZ_4K - 1;
 
 	ret = __etnaviv_iommu_init(etnaviv_domain);
-	if (ret)
-		goto out_free;
+	if (ret) {
+		return ret;
+	}
 
-	return &etnaviv_domain->domain;
-
-out_free:
-	kfree(etnaviv_domain);
-	return NULL;
+	return 0;
 }
