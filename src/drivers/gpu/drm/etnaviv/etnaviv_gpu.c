@@ -12,6 +12,7 @@
 #include "state.xml.h"
 #include "state_hi.xml.h"
 #include "cmdstream.xml.h"
+#include <stdio.h>
 
 #if 0
 static const struct platform_device_id gpu_ids[] = {
@@ -641,15 +642,14 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 		log_error("Unknown GPU model");
 		return -ENXIO;
 	}
-#if 0
+
 	/* Exclude VG cores with FE2.0 */
 	if (gpu->identity.features & chipFeatures_PIPE_VG &&
 	    gpu->identity.features & chipFeatures_FE20) {
-		dev_info(gpu->dev, "Ignoring GPU with VG and FE2.0\n");
-		ret = -ENXIO;
-		goto fail;
+		log_error("Ignoring GPU with VG and FE2.0");
+		return -ENXIO;
 	}
-#endif
+
 	/*
 	 * Set the GPU linear window to be at the end of the DMA window, where
 	 * the CMA area is likely to reside. This ensures that we are able to
@@ -686,26 +686,22 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 	if (IS_ERR(gpu->cmdbuf_suballoc)) {
 		log_error("Failed to create cmdbuf suballocator\n");
 		return -1;
-//		ret = PTR_ERR(gpu->cmdbuf_suballoc);
-//		goto fail;
 	}
-#if 0
 	/* Create buffer: */
-	gpu->buffer = etnaviv_cmdbuf_new(gpu->cmdbuf_suballoc, PAGE_SIZE, 0);
+	gpu->buffer = etnaviv_cmdbuf_new(gpu->cmdbuf_suballoc, 4096, 0);
 	if (!gpu->buffer) {
-		ret = -ENOMEM;
-		dev_err(gpu->dev, "could not create command buffer\n");
-		goto destroy_iommu;
+		log_error("could not create command buffer");
+		return -ENOMEM;
 	}
 
-	if (gpu->mmu->version == ETNAVIV_IOMMU_V1 &&
+	if (gpu->mmu.version == ETNAVIV_IOMMU_V1 &&
 	    etnaviv_cmdbuf_get_va(gpu->buffer) > 0x80000000) {
-		ret = -EINVAL;
-		dev_err(gpu->dev,
-			"command buffer outside valid memory window\n");
-		goto free_buffer;
+		log_debug("buffer %p va %p\n", gpu->buffer, etnaviv_cmdbuf_get_va(gpu->buffer));
+		log_error("command buffer outside valid memory window");
+		return -EINVAL;
 	}
 
+#if 0
 	/* Setup event management */
 	spin_lock_init(&gpu->event_spinlock);
 	init_completion(&gpu->event_free);
@@ -736,8 +732,7 @@ destroy_iommu:
 #endif
 	return 0;
 }
-#if 0
-#ifdef CONFIG_DEBUG_FS
+
 struct dma_debug {
 	u32 address[2];
 	u32 state[2];
@@ -762,18 +757,20 @@ static void verify_dma(struct etnaviv_gpu *gpu, struct dma_debug *debug)
 	}
 }
 
-int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, struct seq_file *m)
-{
+#define seq_puts(a,...) printf(__VA_ARGS__)
+#define seq_printf(a,...) printf(__VA_ARGS__)
+struct seq_file;
+int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu) {
 	struct dma_debug debug;
 	u32 dma_lo, dma_hi, axi, idle;
 	int ret;
 
-	seq_printf(m, "%s Status:\n", dev_name(gpu->dev));
-
+	seq_printf(m, "%s Status:\n", "GPU");
+#if 0
 	ret = pm_runtime_get_sync(gpu->dev);
 	if (ret < 0)
 		return ret;
-
+#endif
 	dma_lo = gpu_read(gpu, VIVS_FE_DMA_LOW);
 	dma_hi = gpu_read(gpu, VIVS_FE_DMA_HIGH);
 	axi = gpu_read(gpu, VIVS_HI_AXI_STATUS);
@@ -880,13 +877,12 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, struct seq_file *m)
 
 	ret = 0;
 
-	pm_runtime_mark_last_busy(gpu->dev);
-	pm_runtime_put_autosuspend(gpu->dev);
+	//pm_runtime_mark_last_busy(gpu->dev);
+	//pm_runtime_put_autosuspend(gpu->dev);
 
 	return ret;
 }
-#endif
-
+#if 0
 /*
  * Hangcheck detection for locked gpu:
  */

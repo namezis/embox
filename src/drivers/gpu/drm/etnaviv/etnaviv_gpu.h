@@ -129,4 +129,6 @@ extern void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, u32 address, u16 prefe
 
 extern int etnaviv_gpu_wait_idle(struct etnaviv_gpu *gpu, unsigned int timeout_ms);
 
+extern int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu);
+
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GPU_H_ */

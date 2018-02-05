@@ -95,28 +95,22 @@ etnaviv_cmdbuf_new(struct etnaviv_cmdbuf_suballoc *suballoc, u32 size,
 		   size_t nr_bos)
 {
 	struct etnaviv_cmdbuf *cmdbuf;
-	printf("trace %s %d\n", __func__, __LINE__);
 	size_t sz = size_vstruct(nr_bos, sizeof(cmdbuf->bo_map[0]),
 				 sizeof(*cmdbuf));
-	printf("trace %s %d\n", __func__, __LINE__);
 	int granule_offs, /* order, */ ret;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	cmdbuf = kzalloc(sz, GFP_KERNEL);
 	if (!cmdbuf)
 		return NULL;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	cmdbuf->suballoc = suballoc;
 	cmdbuf->size = size;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	//order = order_base_2(ALIGN(size, SUBALLOC_GRANULE) / SUBALLOC_GRANULE);
 retry:
 	//mutex_lock(&suballoc->lock);
 	granule_offs = 0;//bitmap_find_free_region(suballoc->granule_map,
 			//		SUBALLOC_GRANULES, order);
-	printf("trace %s %d\n", __func__, __LINE__);
 	if (granule_offs < 0) {
 		suballoc->free_space = 0;
 		ret = 0;
@@ -131,13 +125,9 @@ retry:
 		}
 		goto retry;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 	//mutex_unlock(&suballoc->lock);
 	cmdbuf->suballoc_offset = granule_offs * SUBALLOC_GRANULE;
-	printf("trace %s %d\n", __func__, __LINE__);
-	printf("suballoc=%p, cmdbuf=%p\n", suballoc, cmdbuf);
 	cmdbuf->vaddr = suballoc->vaddr + cmdbuf->suballoc_offset;
-	printf("trace %s %d\n", __func__, __LINE__);
 
 	return cmdbuf;
 }
@@ -160,6 +150,7 @@ void etnaviv_cmdbuf_free(struct etnaviv_cmdbuf *cmdbuf)
 
 u32 etnaviv_cmdbuf_get_va(struct etnaviv_cmdbuf *buf)
 {
+	log_debug("suballoc %p iova %p offset %p\n", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
 	return buf->suballoc->iova + buf->suballoc_offset;
 }
 

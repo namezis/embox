@@ -208,6 +208,9 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
 
+	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
+	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
+
 	return &file->f_idesc;
 }
 
@@ -224,7 +227,6 @@ static ssize_t etnaviv_dev_read(struct idesc *desc, const struct iovec *iov, int
 	log_debug("trace");
 	return 0;
 }
-
 
 static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data) {
 	drm_version_t *version;
@@ -278,6 +280,9 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		break;
 	case 71: /* DRM_ETNAVIV_WAIT_FENCE */
 		//etnaviv_ioctl_wait_fence(dev, data, file);
+	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
+	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
+
 		break;
 	default:
 		log_debug("NIY, request=%d", request);

@@ -23,7 +23,13 @@
 
 #define drm_malloc_ab(a, b) sysmalloc((a) * (b))
 #define kmalloc(a, b) sysmalloc(a)
-#define kzalloc(a, b) sysmalloc(a)
+
+static inline void *kzalloc(int a, int b) {
+	void *m = sysmalloc(a);
+	memset(m, 0, a);
+	return m;
+}
+
 #define kfree(a) sysfree(a)
 
 #define ALIGN(v,a) (((v) + (a) - 1) & ~((a) - 1))
