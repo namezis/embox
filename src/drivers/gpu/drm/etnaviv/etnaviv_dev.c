@@ -112,8 +112,8 @@ static struct drm_file etnaviv_drm_file;
 static struct etnaviv_drm_private etnaviv_drm_private;
 static struct etnaviv_gpu etnaviv_gpus[ETNA_MAX_PIPES];
 
-#define VIVANTE_2D_BASE 0x00134000
-#define VIVANTE_3D_BASE 0x00130000
+#define VIVANTE_2D_BASE OPTION_GET(NUMBER,vivante_2d_base)
+#define VIVANTE_3D_BASE OPTION_GET(NUMBER,vivante_3d_base)
 
 static irq_return_t etna_irq_handler(unsigned int irq, void *data)
 {
