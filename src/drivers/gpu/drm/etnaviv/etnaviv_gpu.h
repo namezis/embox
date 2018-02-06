@@ -97,6 +97,9 @@ struct etnaviv_gpu {
 	int exec_state;
 
 	uint32_t memory_base;
+
+	struct etnaviv_file_private *lastctx;
+	int switch_context;
 };
 
 extern int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, uint32_t param,
@@ -129,6 +132,8 @@ extern void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, u32 address, u16 prefe
 
 extern int etnaviv_gpu_wait_idle(struct etnaviv_gpu *gpu, unsigned int timeout_ms);
 
-extern int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu);
+extern int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s);
+
+extern u16 etnaviv_buffer_init(struct etnaviv_gpu *gpu);
 
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GPU_H_ */

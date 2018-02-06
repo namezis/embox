@@ -162,7 +162,6 @@ static u32 etnaviv_buffer_reserve(struct etnaviv_gpu *gpu,
 	return etnaviv_cmdbuf_get_va(buffer) + buffer->user_size;
 }
 
-#if 0
 u16 etnaviv_buffer_init(struct etnaviv_gpu *gpu)
 {
 	struct etnaviv_cmdbuf *buffer = gpu->buffer;
@@ -176,7 +175,7 @@ u16 etnaviv_buffer_init(struct etnaviv_gpu *gpu)
 
 	return buffer->user_size / 8;
 }
-#endif
+
 u16 etnaviv_buffer_config_mmuv2(struct etnaviv_gpu *gpu, u32 mtlb_addr, u32 safe_addr)
 {
 	struct etnaviv_cmdbuf *buffer = gpu->buffer;
@@ -290,10 +289,10 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 			extra_dwords += 4;
 
 		target = etnaviv_buffer_reserve(gpu, buffer, extra_dwords);
-#if 0
-		if (gpu->mmu->need_flush) {
+
+		if (gpu->mmu.need_flush) {
 			/* Add the MMU flush */
-			if (gpu->mmu->version == ETNAVIV_IOMMU_V1) {
+			if (gpu->mmu.version == ETNAVIV_IOMMU_V1) {
 				CMD_LOAD_STATE(buffer, VIVS_GL_FLUSH_MMU,
 					       VIVS_GL_FLUSH_MMU_FLUSH_FEMMU |
 					       VIVS_GL_FLUSH_MMU_FLUSH_UNK1 |
@@ -311,14 +310,14 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 					SYNC_RECIPIENT_PE);
 			}
 
-			gpu->mmu->need_flush = false;
+			gpu->mmu.need_flush = false;
 		}
-#endif
-//		if (gpu->switch_context) {
+
+		if (gpu->switch_context) {
 			etnaviv_cmd_select_pipe(gpu, buffer, cmdbuf->exec_state);
-//			gpu->exec_state = cmdbuf->exec_state;
-//			gpu->switch_context = false;
-//		}
+			gpu->exec_state = cmdbuf->exec_state;
+			gpu->switch_context = false;
+		}
 
 		/* And the link to the submitted buffer */
 		CMD_LINK(buffer, link_dwords, link_target);

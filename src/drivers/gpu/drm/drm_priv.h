@@ -23,6 +23,7 @@ struct drm_file {
 	struct idr object_idr;
 	pthread_mutex_t table_lock;
 
+	void *driver_priv;
 };
 
 

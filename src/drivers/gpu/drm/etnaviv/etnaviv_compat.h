@@ -90,10 +90,12 @@ struct timespec;
 
 typedef int phys_addr_t;
 
-#define PHYS_OFFSET 0 /* Start of RAM */
+#define PHYS_OFFSET 0x10000000 /* Start of RAM */
 
 static inline int dma_get_required_mask(void *dev) {
 	return 0x1FFFFFFF; /* 512 MB */
 }
+
+#define IOMMU_READ	(1 << 0)
 
 #endif

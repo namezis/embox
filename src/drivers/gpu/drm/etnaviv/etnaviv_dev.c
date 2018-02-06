@@ -208,8 +208,8 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
 
-	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
-	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
+	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 
 	return &file->f_idesc;
 }
@@ -234,9 +234,10 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 	int nr = _IOC_NR(request);
 	struct drm_device *dev = &etnaviv_drm_device;
 	struct drm_file *file = &etnaviv_drm_file;
-
-
-	log_debug("dir=%d, type=%d, nr=%d", _IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
+	//struct etnaviv_drm_private *priv = dev->dev_private;
+	struct drm_etnaviv_param *args = data;
+	args->pipe = 1;
+	log_debug("pipe=%d, dir=%d, type=%d, nr=%d", args->pipe, _IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
 	switch (nr) {
 	case 0: /* DRM_IOCTL_VERSION */
 		version = data;
@@ -266,23 +267,35 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 			req->value = -1;
 		}
 #endif
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		etnaviv_ioctl_get_param(dev, data, file);
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		break;
 	case 66: /* DRM_ETNAVIV_GEM_NEW */
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		etnaviv_ioctl_gem_new(dev, data, file);
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		break;
 	case 67: /* DRM_ETNAVIV_GEM_INFO */
 		etnaviv_ioctl_gem_info(dev, data, file);
 		break;
 	case 70: /* DRM_ETNAVIV_GEM_SUBMIT */
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
+		args->pipe = PIPE_ID_PIPE_2D;
 		etnaviv_ioctl_gem_submit(dev, data, file);
-	printf("trace %s %d\n", __func__, __LINE__);
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		break;
 	case 71: /* DRM_ETNAVIV_WAIT_FENCE */
 		//etnaviv_ioctl_wait_fence(dev, data, file);
-	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D]);
-	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
-
+		//
+		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+	//etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		break;
 	default:
 		log_debug("NIY, request=%d", request);

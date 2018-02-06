@@ -63,9 +63,9 @@ etnaviv_cmdbuf_suballoc_new(struct etnaviv_gpu * gpu)
 	if (!suballoc->vaddr)
 		goto free_suballoc;
 
-	//ret = etnaviv_iommu_get_suballoc_va(gpu, suballoc->paddr,
-	//				    &suballoc->vram_node, SUBALLOC_SIZE,
-	//				    &suballoc->iova);
+	ret = etnaviv_iommu_get_suballoc_va(gpu, suballoc->paddr,
+					     SUBALLOC_SIZE,
+					    &suballoc->iova);
 	if (ret)
 		goto free_dma;
 

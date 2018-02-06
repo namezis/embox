@@ -336,6 +336,7 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	void *stream;
 	int ret;
 
+	log_debug("Pipe is %d\n", args->pipe);
 	if (args->pipe >= ETNA_MAX_PIPES)
 		return -EINVAL;
 
@@ -394,15 +395,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	}
 
 	stream = (void *) (int) args->stream;
-#if 0
-	ret = copy_from_user(stream, u64_to_user_ptr(args->stream),
-			     args->stream_size);
-	printf("trace %s %d\n", __func__, __LINE__);
-	if (ret) {
-		ret = -EFAULT;
-		goto err_submit_cmds;
-	}
-#endif
 	//if (args->flags & ETNA_SUBMIT_FENCE_FD_OUT) {
 		/*
 		out_fence_fd = get_unused_fd_flags(O_CLOEXEC);

@@ -574,7 +574,7 @@ static void etnaviv_gpu_setup_pulse_eater(struct etnaviv_gpu *gpu)
 
 static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 {
-	//uint16_t prefetch = 1;
+	uint16_t prefetch;
 #if 0
 	if ((etnaviv_is_model_rev(gpu, GC320, 0x5007) ||
 	     etnaviv_is_model_rev(gpu, GC320, 0x5220)) &&
@@ -619,11 +619,11 @@ static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 	etnaviv_iommu_restore(gpu);
 
 	/* Start command processor */
-	//prefetch = etnaviv_buffer_init(gpu);
+	prefetch = etnaviv_buffer_init(gpu);
 
 	gpu_write(gpu, VIVS_HI_INTR_ENBL, ~0U);
-	//etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
-	//		     prefetch);
+	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
+			     prefetch);
 }
 
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
@@ -671,6 +671,8 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 		gpu->memory_base = PHYS_OFFSET;
 		gpu->identity.features &= ~chipFeatures_FAST_CLEAR;
 	}
+
+	log_debug("memory base %p\n", (void *) gpu->memory_base);
 
 	if (etnaviv_hw_reset(gpu)) {
 		log_error("GPU reset failed");
@@ -760,12 +762,13 @@ static void verify_dma(struct etnaviv_gpu *gpu, struct dma_debug *debug)
 #define seq_puts(a,...) printf(__VA_ARGS__)
 #define seq_printf(a,...) printf(__VA_ARGS__)
 struct seq_file;
-int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu) {
+int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 	struct dma_debug debug;
 	u32 dma_lo, dma_hi, axi, idle;
 	int ret;
+	mod_logger.logging.level = 0;
 
-	seq_printf(m, "%s Status:\n", "GPU");
+	seq_printf(m, "%s Status:\n", s);
 #if 0
 	ret = pm_runtime_get_sync(gpu->dev);
 	if (ret < 0)
@@ -879,6 +882,7 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu) {
 
 	//pm_runtime_mark_last_busy(gpu->dev);
 	//pm_runtime_put_autosuspend(gpu->dev);
+	mod_logger.logging.level = 4;
 
 	return ret;
 }
@@ -1283,19 +1287,20 @@ void etnaviv_gpu_pm_put(struct etnaviv_gpu *gpu)
 int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf)
 {
+#if 0
 	gpu_write(gpu, 0x14, ~0);
 	etnaviv_gpu_start_fe(gpu, (int)cmdbuf->vaddr, 2);
 
 	return 0;
-#if 0
-	struct dma_fence *fence;
-	unsigned int event, i;
+#endif
+	//struct dma_fence *fence;
+	unsigned int event = 0, i;
 	int ret;
-
+#if 0
 	ret = etnaviv_gpu_pm_get_sync(gpu);
 	if (ret < 0)
 		return ret;
-
+#endif
 	/*
 	 * TODO
 	 *
@@ -1304,16 +1309,16 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	 * - prefetch
 	 *
 	 */
-
+#if 0
 	event = event_alloc(gpu);
 	if (unlikely(event == ~0U)) {
 		DRM_ERROR("no free event\n");
 		ret = -EBUSY;
 		goto out_pm_put;
 	}
-
-	mutex_lock(&gpu->lock);
-
+#endif
+//	mutex_lock(&gpu->lock);
+#if 0
 	fence = etnaviv_gpu_fence_alloc(gpu);
 	if (!fence) {
 		event_free(gpu, event);
@@ -1324,48 +1329,48 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	gpu->event[event].fence = fence;
 	submit->fence = dma_fence_get(fence);
 	gpu->active_fence = submit->fence->seqno;
-
+#endif
 	if (gpu->lastctx != cmdbuf->ctx) {
-		gpu->mmu->need_flush = true;
+		gpu->mmu.need_flush = true;
 		gpu->switch_context = true;
 		gpu->lastctx = cmdbuf->ctx;
 	}
 
 	etnaviv_buffer_queue(gpu, event, cmdbuf);
 
-	cmdbuf->fence = fence;
-	list_add_tail(&cmdbuf->node, &gpu->active_cmd_list);
+	//cmdbuf->fence = fence;
+	//list_add_tail(&cmdbuf->node, &gpu->active_cmd_list);
 
 	/* We're committed to adding this command buffer, hold a PM reference */
-	pm_runtime_get_noresume(gpu->dev);
+	//pm_runtime_get_noresume(gpu->dev);
 
 	for (i = 0; i < submit->nr_bos; i++) {
-		struct etnaviv_gem_object *etnaviv_obj = submit->bos[i].obj;
+		//struct etnaviv_gem_object *etnaviv_obj = submit->bos[i].obj;
 
 		/* Each cmdbuf takes a refcount on the mapping */
-		etnaviv_gem_mapping_reference(submit->bos[i].mapping);
-		cmdbuf->bo_map[i] = submit->bos[i].mapping;
-		atomic_inc(&etnaviv_obj->gpu_active);
-
+		//etnaviv_gem_mapping_reference(submit->bos[i].mapping);
+		//cmdbuf->bo_map[i] = submit->bos[i].mapping;
+		//atomic_inc(&etnaviv_obj->gpu_active);
+#if 0
 		if (submit->bos[i].flags & ETNA_SUBMIT_BO_WRITE)
 			reservation_object_add_excl_fence(etnaviv_obj->resv,
 							  fence);
 		else
 			reservation_object_add_shared_fence(etnaviv_obj->resv,
 							    fence);
+#endif
 	}
 	cmdbuf->nr_bos = submit->nr_bos;
-	hangcheck_timer_reset(gpu);
+//	hangcheck_timer_reset(gpu);
 	ret = 0;
 
-out_unlock:
-	mutex_unlock(&gpu->lock);
+//out_unlock:
+//	mutex_unlock(&gpu->lock);
 
-out_pm_put:
-	etnaviv_gpu_pm_put(gpu);
+//out_pm_put:
+//	etnaviv_gpu_pm_put(gpu);
 
 	return ret;
-#endif
 }
 #if 0
 /*
