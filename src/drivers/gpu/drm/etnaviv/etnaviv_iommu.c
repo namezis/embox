@@ -54,6 +54,8 @@ static int pgtable_alloc(struct etnaviv_iommu_domain_pgtable *pgtable,
 	if (!pgtable->pgtable)
 		return -ENOMEM;
 
+	pgtable->paddr = (dma_addr_t) pgtable->pgtable;
+
 	return 0;
 }
 
