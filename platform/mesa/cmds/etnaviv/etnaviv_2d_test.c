@@ -151,6 +151,10 @@ static void gen_cmd_stream(struct etna_cmd_stream *stream, struct etna_bo *bmp, 
 	etna_set_state(stream, VIVS_GL_FLUSH_CACHE, VIVS_GL_FLUSH_CACHE_PE2D);
 }
 
+extern uint16_t ipu_fb[];
+
+#define PIPE_2D_ID	0x1
+
 int main(int argc, char *argv[])
 {
 	const int width = 256;
@@ -196,29 +200,33 @@ int main(int argc, char *argv[])
 	}
 
 	/* TODO: we assume that core 0 is a 2D capable one */
-	gpu = etna_gpu_new(dev, 0);
+	gpu = etna_gpu_new(dev, 1);
 	if (!gpu) {
 		ret = 3;
 		printf("Failed to create Etnaviv GPU\n");
 		goto out_device;
 	}
 
-	pipe = etna_pipe_new(gpu, ETNA_PIPE_2D);
+	pipe = etna_pipe_new(gpu, PIPE_2D_ID);
 	if (!pipe) {
 		ret = 4;
 		printf("Failed to create Etnaviv pipe\n");
 		goto out_gpu;
 	}
 
+	printf("trace %s %d\n", __func__, __LINE__);
 	bmp = etna_bo_new(dev, bmp_size, ETNA_BO_UNCACHED);
 	if (!bmp) {
 		ret = 5;
 		printf("Failed to map Etnaviv BO\n");
 		goto out_pipe;
 	}
+	printf("trace %d\n", __LINE__);
 	memset(etna_bo_map(bmp), 0, bmp_size);
+	printf("trace %d\n", __LINE__);
 
 	stream = etna_cmd_stream_new(pipe, 0x300, NULL, NULL);
+	printf("stream buf is %p\n", stream->buffer);
 	if (!stream) {
 		ret = 6;
 		printf("Failed to create Etnaviv command stream\n");
@@ -230,9 +238,26 @@ int main(int argc, char *argv[])
 
 	etna_cmd_stream_finish(stream);
 
-	bmp_dump32(etna_bo_map(bmp), width, height, false, "/tmp/etna.bmp");
+	uint32_t *ptr = etna_bo_map(bmp);
+
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			uint32_t val = *ptr++;
+
+			if (val) {
+				ipu_fb[i * 1280 + j] = 0xffff;
+				printf("Nonzero pixel %d %d\n", i, j);
+			} else {
+				ipu_fb[i * 1280 + j] = 0;
+			}
+		}
+	}
+
+	//bmp_dump32(etna_bo_map(bmp), width, height, false, "/tmp/etna.bmp");
+	printf("trace %d\n", __LINE__);
 
 	etna_cmd_stream_del(stream);
+	printf("trace %d\n", __LINE__);
 
 out_bo:
 	etna_bo_del(bmp);
