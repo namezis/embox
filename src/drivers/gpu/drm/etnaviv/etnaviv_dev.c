@@ -230,11 +230,9 @@ static ssize_t etnaviv_dev_read(struct idesc *desc, const struct iovec *iov, int
 
 static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data) {
 	drm_version_t *version;
-	//struct drm_etnaviv_param *req;
 	int nr = _IOC_NR(request);
 	struct drm_device *dev = &etnaviv_drm_device;
 	struct drm_file *file = &etnaviv_drm_file;
-	//struct etnaviv_drm_private *priv = dev->dev_private;
 	struct drm_etnaviv_param *args = data;
 	args->pipe = 1;
 	log_debug("pipe=%d, dir=%d, type=%d, nr=%d", args->pipe, _IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
@@ -253,20 +251,6 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		};
 		break;
 	case 64: /* DRM_ETNAVIV_GET_PARAM */
-#if 0
-		req = data;
-		switch (req->param) {
-		case ETNAVIV_PARAM_GPU_MODEL:
-			req->value = 0xdeadbeef;
-			break;
-		case ETNAVIV_PARAM_GPU_REVISION:
-			req->value = 0xcafebabe;
-			break;
-		default:
-			log_debug("NIY DRM_ETNAVIV_GET_PARAM,param=0x%08x", req->param);
-			req->value = -1;
-		}
-#endif
 		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
 	//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
 		etnaviv_ioctl_get_param(dev, data, file);
