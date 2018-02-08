@@ -30,7 +30,7 @@
 #include "etnaviv_gem.h"
 #include "etnaviv_drm.h"
 
-#include "drm_gem.h"
+#include <embox_drm/drm_gem.h>
 
 /*
  *
