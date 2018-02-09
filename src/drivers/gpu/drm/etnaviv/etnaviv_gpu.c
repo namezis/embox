@@ -3,6 +3,10 @@
  * @author Anton Bondarev
  */
 
+#include <stdio.h>
+
+#include <drivers/pm_runtime.h>
+
 #include "etnaviv_compat.h"
 #include "etnaviv_cmdbuf.h"
 #include "etnaviv_gpu.h"
@@ -12,7 +16,7 @@
 #include "state.xml.h"
 #include "state_hi.xml.h"
 #include "cmdstream.xml.h"
-#include <stdio.h>
+
 
 #if 0
 static const struct platform_device_id gpu_ids[] = {
@@ -628,14 +632,14 @@ static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
 {
-	//int ret, i;
-#if 0
+	int ret;
+
 	ret = pm_runtime_get_sync(gpu->dev);
 	if (ret < 0) {
-		dev_err(gpu->dev, "Failed to enable GPU power domain\n");
+		log_error("Failed to enable GPU power domain");
 		return ret;
 	}
-#endif
+
 	etnaviv_hw_identify(gpu);
 
 	if (gpu->identity.model == 0) {
