@@ -76,6 +76,22 @@ static struct drm_gem_object *__etnaviv_gem_new(struct drm_device *dev,
 	if (ret)
 		goto fail;
 
+	ret = drm_gem_object_init(dev, obj, size);
+#if 0
+	if (ret == 0) {
+		struct address_space *mapping;
+
+		/*
+		 * Our buffers are kept pinned, so allocating them
+		 * from the MOVABLE zone is a really bad idea, and
+		 * conflicts with CMA.  See coments above new_inode()
+		 * why this is required _and_ expected if you're
+		 * going to pin these pages.
+		 */
+		mapping = obj->filp->f_mapping;
+		mapping_set_gfp_mask(mapping, GFP_HIGHUSER);
+	}
+#endif
 	return obj;
 
 fail:
