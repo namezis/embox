@@ -135,3 +135,53 @@ int drm_gem_handle_create(struct drm_file *file_priv,
 
 	return drm_gem_handle_create_tail(file_priv, obj, handlep);
 }
+
+
+/**
+ * drm_gem_object_init - initialize an allocated shmem-backed GEM object
+ * @dev: drm_device the object should be initialized for
+ * @obj: drm_gem_object to initialize
+ * @size: object size
+ *
+ * Initialize an already allocated GEM object of the specified size with
+ * shmfs backing store.
+ */
+int drm_gem_object_init(struct drm_device *dev,
+			struct drm_gem_object *obj, size_t size)
+{
+#if 0
+	struct file *filp;
+#endif
+
+	drm_gem_private_object_init(dev, obj, size);
+#if 0
+	filp = shmem_file_setup("drm mm object", size, VM_NORESERVE);
+	if (err(filp))
+		return (int)(filp);
+
+	obj->filp = filp;
+#endif
+	return 0;
+}
+
+/**
+ * drm_gem_private_object_init - initialize an allocated private GEM object
+ * @dev: drm_device the object should be initialized for
+ * @obj: drm_gem_object to initialize
+ * @size: object size
+ *
+ * Initialize an already allocated GEM object of the specified size with
+ * no GEM provided backing store. Instead the caller is responsible for
+ * backing the object and handling it.
+ */
+void drm_gem_private_object_init(struct drm_device *dev,
+				 struct drm_gem_object *obj, size_t size)
+{
+	obj->dev = dev;
+	obj->filp = NULL;
+
+//	kref_init(&obj->refcount);
+//	obj->handle_count = 0;
+	obj->size = size;
+//	drm_vma_node_reset(&obj->vma_node);
+}

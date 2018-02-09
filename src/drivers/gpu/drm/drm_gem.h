@@ -175,5 +175,10 @@ extern int drm_gem_handle_create(struct drm_file *file_priv,
 			  struct drm_gem_object *obj,
 			  uint32_t *handlep);
 
+extern int drm_gem_object_init(struct drm_device *dev,
+		struct drm_gem_object *obj, size_t size);
+
+extern void drm_gem_private_object_init(struct drm_device *dev,
+		 struct drm_gem_object *obj, size_t size);
 
 #endif /* SRC_DRIVERS_GPU_DRM_DRM_GEM_H_ */
