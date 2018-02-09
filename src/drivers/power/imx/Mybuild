@@ -11,4 +11,5 @@ module imx {
 	source "imx.c"
 
 	depends embox.driver.periph_memory
+	@NoRuntime depends embox.driver.power.pm_power
 }

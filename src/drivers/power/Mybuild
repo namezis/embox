@@ -7,3 +7,10 @@ module bcm2835_power {
 	source "bcm2835_power.c"
 	depends embox.driver.mailbox.bcm2835_mailbox
 }
+
+module pm_power {
+	@IncludeExport(path="drivers")
+	source "pm_runtime.h"
+
+	source "pm_runtime.c"
+}
