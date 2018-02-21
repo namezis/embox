@@ -5,6 +5,8 @@
 
 #include <stdio.h>
 
+#include <linux/wait.h>
+
 #include <drivers/pm_runtime.h>
 
 #include "etnaviv_compat.h"
@@ -12,10 +14,12 @@
 #include "etnaviv_gpu.h"
 #include "etnaviv_gem.h"
 #include "etnaviv_drm.h"
+#include "etnaviv_drv.h"
 #include "common.xml.h"
 #include "state.xml.h"
 #include "state_hi.xml.h"
 #include "cmdstream.xml.h"
+
 
 
 #if 0
@@ -1205,14 +1209,14 @@ static void retire_worker(struct work_struct *work)
 
 	wake_up_all(&gpu->fence_event);
 }
-
+#endif
 int etnaviv_gpu_wait_fence_interruptible(struct etnaviv_gpu *gpu,
-	u32 fence, struct timespec *timeout)
+	uint32_t fence, struct timespec *timeout)
 {
 	int ret;
 
 	if (fence_after(fence, gpu->next_fence)) {
-		DRM_ERROR("waiting on invalid fence: %u (of %u)\n",
+		log_error("waiting on invalid fence: %u (of %u)\n",
 				fence, gpu->next_fence);
 		return -EINVAL;
 	}
@@ -1227,18 +1231,18 @@ int etnaviv_gpu_wait_fence_interruptible(struct etnaviv_gpu *gpu,
 						fence_completed(gpu, fence),
 						remaining);
 		if (ret == 0) {
-			DBG("timeout waiting for fence: %u (retired: %u completed: %u)",
+			log_debug("timeout waiting for fence: %u (retired: %u completed: %u)",
 				fence, gpu->retired_fence,
 				gpu->completed_fence);
 			ret = -ETIMEDOUT;
-		} else if (ret != -ERESTARTSYS) {
+		} /* else if (ret != -ERESTARTSYS) {
 			ret = 0;
-		}
+		} */
 	}
 
 	return ret;
 }
-
+#if 0
 /*
  * Wait for an object to become inactive.  This, on it's own, is not race
  * free: the object is moved by the retire worker off the active list, and

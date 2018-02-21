@@ -13,6 +13,7 @@
 #include <hal/reg.h>
 #include <util/log.h>
 
+#include "etnaviv_drv.h"
 #include "etnaviv_mmu.h"
 
 struct etnaviv_chip_identity {
@@ -101,6 +102,12 @@ struct etnaviv_gpu {
 
 	struct etnaviv_file_private *lastctx;
 	int switch_context;
+
+	/* Fencing support */
+	uint32_t next_fence;
+	uint32_t active_fence;
+	uint32_t completed_fence;
+	uint32_t retired_fence;
 };
 
 extern int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, uint32_t param,
@@ -124,17 +131,31 @@ static inline uint32_t gpu_read(struct etnaviv_gpu *gpu, uint32_t reg)
 }
 
 
+static inline bool fence_completed(struct etnaviv_gpu *gpu, u32 fence)
+{
+	return fence_after_eq(gpu->completed_fence, fence);
+}
+
+static inline bool fence_retired(struct etnaviv_gpu *gpu, u32 fence)
+{
+	return fence_after_eq(gpu->retired_fence, fence);
+}
+
+
 extern int etnaviv_gpu_init(struct etnaviv_gpu *gpu);
 
 extern void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	struct etnaviv_cmdbuf *cmdbuf);
 
-extern void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, u32 address, u16 prefetch);
+extern void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, uint32_t address, uint16_t prefetch);
 
 extern int etnaviv_gpu_wait_idle(struct etnaviv_gpu *gpu, unsigned int timeout_ms);
 
 extern int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s);
 
-extern u16 etnaviv_buffer_init(struct etnaviv_gpu *gpu);
+extern uint16_t etnaviv_buffer_init(struct etnaviv_gpu *gpu);
+
+extern int etnaviv_gpu_wait_fence_interruptible(struct etnaviv_gpu *gpu,
+		uint32_t fence, struct timespec *timeout);
 
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GPU_H_ */
