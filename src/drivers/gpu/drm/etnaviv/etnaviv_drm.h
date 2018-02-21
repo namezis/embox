@@ -230,10 +230,4 @@ struct drm_etnaviv_gem_wait {
 }
 #endif
 
-
-extern bool etnaviv_cmd_validate_one(struct etnaviv_gpu *gpu, u32 *stream,
-			      unsigned int size,
-			      struct drm_etnaviv_gem_submit_reloc *relocs,
-			      unsigned int reloc_size);
-
 #endif /* __ETNAVIV_DRM_H__ */
