@@ -51,8 +51,6 @@
 #define R2D_GPU2D_IRQ	OPTION_GET(NUMBER,r2d_gpu2d_irq)
 #define V2D_GPU2D_IRQ	OPTION_GET(NUMBER,v2d_gpu2d_irq)
 
-extern int etnaviv_ioctl_wait_fence(struct drm_device *dev, void *data, struct drm_file *file);
-
 /*
  * DRM ioctls:
  */
@@ -104,6 +102,32 @@ int etnaviv_ioctl_gem_info(struct drm_device *dev, void *data, struct drm_file *
 
 	return ret;
 }
+
+
+static int etnaviv_ioctl_wait_fence(struct drm_device *dev, void *data, struct drm_file *file)
+{
+	struct drm_etnaviv_wait_fence *args = data;
+	struct etnaviv_drm_private *priv = dev->dev_private;
+	struct timespec *timeout = (void *)&args->timeout;
+	struct etnaviv_gpu *gpu;
+
+	if (args->flags & ~(ETNA_WAIT_NONBLOCK))
+		return -EINVAL;
+
+	if (args->pipe >= ETNA_MAX_PIPES)
+		return -EINVAL;
+
+	gpu = priv->gpu[args->pipe];
+	if (!gpu)
+		return -ENXIO;
+
+	if (args->flags & ETNA_WAIT_NONBLOCK)
+		timeout = NULL;
+
+	return etnaviv_gpu_wait_fence_interruptible(gpu, args->fence,
+						    timeout);
+}
+
 
 static struct idesc_ops etnaviv_dev_idesc_ops;
 
@@ -263,8 +287,7 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		etnaviv_ioctl_gem_submit(dev, data, file);
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_WAIT_FENCE:
-		//etnaviv_ioctl_wait_fence(dev, data, file);
-		//
+		etnaviv_ioctl_wait_fence(dev, data, file);
 		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
 		break;
 	default:
