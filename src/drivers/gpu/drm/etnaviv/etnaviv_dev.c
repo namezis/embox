@@ -95,8 +95,11 @@ int etnaviv_ioctl_gem_info(struct drm_device *dev, void *data, struct drm_file *
 		return -EINVAL;
 
 	obj = drm_gem_object_lookup(file, args->handle);
-	if (!obj)
+	if (!obj) {
+		log_error("obj (%p) didn't found", args->handle);
 		return -ENOENT;
+	}
+	log_debug("obj (%p) founded by handle (%i)", obj, args->handle);
 
 	ret = etnaviv_gem_mmap_offset(obj, &args->offset);
 
@@ -258,7 +261,8 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 	struct drm_device *dev = &etnaviv_drm_device;
 	struct drm_file *file = &etnaviv_drm_file;
 	struct drm_etnaviv_param *args = data;
-	args->pipe = 1;
+	int res = 0;
+
 	log_debug("pipe=%d, dir=%d, type=%d, nr=%d", args->pipe, _IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
 	switch (nr) {
 	case 0: /* DRM_IOCTL_VERSION */
@@ -275,25 +279,26 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		};
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_GET_PARAM:
-		etnaviv_ioctl_get_param(dev, data, file);
+		res = etnaviv_ioctl_get_param(dev, data, file);
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_GEM_NEW:
-		etnaviv_ioctl_gem_new(dev, data, file);
+		res = etnaviv_ioctl_gem_new(dev, data, file);
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_GEM_INFO:
-		etnaviv_ioctl_gem_info(dev, data, file);
+		res = etnaviv_ioctl_gem_info(dev, data, file);
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_GEM_SUBMIT:
-		etnaviv_ioctl_gem_submit(dev, data, file);
+		res = etnaviv_ioctl_gem_submit(dev, data, file);
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_WAIT_FENCE:
-		etnaviv_ioctl_wait_fence(dev, data, file);
+		res = etnaviv_ioctl_wait_fence(dev, data, file);
 		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
 		break;
 	default:
 		log_debug("NIY, request=%d", request);
+		res = -ENOSYS;
 	}
-	return 0;
+	return res;
 }
 
 static int etnaviv_dev_idesc_fstat(struct idesc *idesc, void *buff) {
