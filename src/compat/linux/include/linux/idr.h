@@ -8,13 +8,18 @@
 #ifndef SRC_COMPAT_LINUX_INCLUDE_IDR_H_
 #define SRC_COMPAT_LINUX_INCLUDE_IDR_H_
 
-
+#include <assert.h>
 #include <stddef.h>
+#include <limits.h>
+
+#include <util/bitmap.h>
 
 #include <linux/types.h>
 
 struct idr {
-	int id;
+	int inited;
+	unsigned long id_pool;
+	void *object_handlers[sizeof(unsigned long) * CHAR_BIT];
 };
 
 /**
@@ -65,7 +70,24 @@ static inline void idr_preload(gfp_t gfp_mask) { }
  * destroys @ptr in RCU-safe way after removal from idr.
  */
 static inline int idr_alloc(struct idr *idp, void *ptr, int start, int end, gfp_t gfp_mask) {
-	return 0;
+	int id;
+	assert(idp);
+
+	if (!idp->inited) {
+		idp->id_pool = 0;
+		idp->inited = 1;
+		memset(idp->object_handlers, 0, sizeof(idp->object_handlers));
+	}
+
+	if (start > sizeof(unsigned long) * CHAR_BIT) {
+		return -ENOSPC;
+	}
+
+	id = bitmap_find_zero_bit(&idp->id_pool, 1, start);
+	idp->object_handlers[id] = ptr;
+	bitmap_set_bit(&idp->id_pool, id);
+
+	return id;
 }
 
 /**
@@ -88,7 +110,7 @@ static inline void idr_preload_end(void) { }
  */
 static inline void *idr_find(struct idr *idr, int id)
 {
-	return NULL;
+	return idr->object_handlers[id];
 }
 
 
