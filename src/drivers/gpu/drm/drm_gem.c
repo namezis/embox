@@ -5,6 +5,8 @@
  * @author Anton Bondarev
  */
 
+#include <util/log.h>
+
 #include <stdint.h>
 #include <pthread.h>
 
@@ -83,6 +85,9 @@ drm_gem_handle_create_tail(struct drm_file *file_priv,
 
 	ret = idr_alloc(&file_priv->object_idr, obj, 1, 0, GFP_NOWAIT);
 
+	if (ret < 0) {
+		goto err_unref;
+	}
 	pthread_mutex_unlock(&file_priv->table_lock);
 	idr_preload_end();
 
@@ -111,10 +116,10 @@ err_remove:
 	pthread_mutex_lock(&file_priv->table_lock);
 	idr_remove(&file_priv->object_idr, handle);
 	pthread_mutex_unlock(&file_priv->table_lock);
+#endif
 err_unref:
 //	drm_gem_object_handle_unreference_unlocked(obj);
 	return ret;
-#endif
 }
 
 /**
