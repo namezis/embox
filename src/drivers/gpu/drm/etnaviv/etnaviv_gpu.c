@@ -774,7 +774,44 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 	struct dma_debug debug;
 	u32 dma_lo, dma_hi, axi, idle;
 	int ret;
+	int cmdState, cmdDmaState, cmdFetState, dmaReqState, calState, veReqState;
 	mod_logger.logging.level = 0;
+
+	static const char *_cmdState[] =
+	{
+		"PAR_IDLE_ST", "PAR_DEC_ST", "PAR_ADR0_ST", "PAR_LOAD0_ST",
+		"PAR_ADR1_ST", "PAR_LOAD1_ST", "PAR_3DADR_ST", "PAR_3DCMD_ST",
+		"PAR_3DCNTL_ST", "PAR_3DIDXCNTL_ST", "PAR_INITREQDMA_ST",
+		"PAR_DRAWIDX_ST", "PAR_DRAW_ST", "PAR_2DRECT0_ST", "PAR_2DRECT1_ST",
+		"PAR_2DDATA0_ST", "PAR_2DDATA1_ST", "PAR_WAITFIFO_ST", "PAR_WAIT_ST",
+		"PAR_LINK_ST", "PAR_END_ST", "PAR_STALL_ST"
+	};
+
+	static const char *_cmdDmaState[] =
+	{
+		"CMD_IDLE_ST", "CMD_START_ST", "CMD_REQ_ST", "CMD_END_ST"
+	};
+
+	static const char *_cmdFetState[] =
+	{
+		"FET_IDLE_ST", "FET_RAMVALID_ST", "FET_VALID_ST"
+	};
+
+	static const char *_reqDmaState[] =
+	{
+		"REQ_IDLE_ST", "REQ_WAITIDX_ST", "REQ_CAL_ST"
+	};
+
+	static const char *_calState[] =
+	{
+		"CAL_IDLE_ST", "CAL_LDADR_ST", "CAL_IDXCALC_ST"
+	};
+
+	static const char *_veReqState[] =
+	{
+		"VER_IDLE_ST", "VER_CKCACHE_ST", "VER_MISS_ST"
+	};
+
 
 	seq_printf(m, "%s Status:\n", s);
 #if 0
@@ -879,10 +916,26 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 		seq_puts(m, "is running\n");
 	}
 
+
+	cmdState    =  debug.state[1]        & 0x1F;
+	cmdDmaState = (debug.state[1] >>  8) & 0x03;
+	cmdFetState = (debug.state[1] >> 10) & 0x03;
+	dmaReqState = (debug.state[1] >> 12) & 0x03;
+	calState    = (debug.state[1] >> 14) & 0x03;
+	veReqState  = (debug.state[1] >> 16) & 0x03;
+
+
+
 	seq_printf(m, "\t address 0: 0x%08x\n", debug.address[0]);
 	seq_printf(m, "\t address 1: 0x%08x\n", debug.address[1]);
 	seq_printf(m, "\t state 0: 0x%08x\n", debug.state[0]);
 	seq_printf(m, "\t state 1: 0x%08x\n", debug.state[1]);
+	seq_printf(m, "\t    command state       = %d (%s)\n", cmdState, _cmdState   [cmdState]);
+	seq_printf(m, "\t    command DMA state   = %d (%s)\n", cmdDmaState, _cmdDmaState[cmdDmaState]);
+	seq_printf(m, "\t    command fetch state = %d (%s)\n", cmdFetState, _cmdFetState[cmdFetState]);
+	seq_printf(m, "\t    DMA request state   = %d (%s)\n", dmaReqState, _reqDmaState[dmaReqState]);
+	seq_printf(m, "\t    cal state           = %d (%s)\n", calState, _calState   [calState]);
+	seq_printf(m, "\t    VE request state    = %d (%s)\n", veReqState, _veReqState [veReqState]);
 	seq_printf(m, "\t last fetch 64 bit word: 0x%08x 0x%08x\n",
 		   dma_lo, dma_hi);
 
@@ -894,6 +947,7 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 
 	return ret;
 }
+
 #if 0
 /*
  * Hangcheck detection for locked gpu:
