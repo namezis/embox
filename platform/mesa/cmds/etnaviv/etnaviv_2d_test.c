@@ -40,7 +40,7 @@
 #include "state.xml.h"
 #include "state_2d.xml.h"
 #include "cmdstream.xml.h"
-
+#include <drivers/video/fb.h>
 #include "write_bmp.h"
 
 static inline void etna_emit_load_state(struct etna_cmd_stream *stream,
@@ -66,12 +66,13 @@ static inline void etna_set_state_from_bo(struct etna_cmd_stream *stream,
 {
 	etna_cmd_stream_reserve(stream, 2);
 	etna_emit_load_state(stream, address >> 2, 1);
-
 	etna_cmd_stream_reloc(stream, &(struct etna_reloc){
 		.bo = bo,
 		.flags = ETNA_RELOC_READ,
 		.offset = 0,
 	});
+	stream->offset--;
+	etna_cmd_stream_emit(stream, (int) etna_bo_map(bo) - 0x10000000);
 }
 
 static void gen_cmd_stream(struct etna_cmd_stream *stream, struct etna_bo *bmp, const int width, const int height)
@@ -223,6 +224,7 @@ int main(int argc, char *argv[])
 	}
 	printf("trace %d\n", __LINE__);
 	memset(etna_bo_map(bmp), 0, bmp_size);
+
 	printf("trace %d\n", __LINE__);
 
 	stream = etna_cmd_stream_new(pipe, 0x300, NULL, NULL);
@@ -241,16 +243,8 @@ int main(int argc, char *argv[])
 	uint32_t *ptr = etna_bo_map(bmp);
 
 	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			uint32_t val = *ptr++;
-
-			if (val) {
-				ipu_fb[i * 1280 + j] = 0xffff;
-				printf("Nonzero pixel %d %d\n", i, j);
-			} else {
-				ipu_fb[i * 1280 + j] = 0;
-			}
-		}
+		pix_fmt_convert(ptr, &ipu_fb[i * 1280], width, RGB888, RGB565);
+		ptr += width;
 	}
 
 	//bmp_dump32(etna_bo_map(bmp), width, height, false, "/tmp/etna.bmp");
