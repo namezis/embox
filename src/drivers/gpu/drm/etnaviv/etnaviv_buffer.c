@@ -15,6 +15,8 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <../arch/arm/armlib/mem_barriers.h>
+
 #include "etnaviv_compat.h"
 #include "etnaviv_cmdbuf.h"
 #include "etnaviv_gpu.h"
@@ -119,20 +121,26 @@ static void etnaviv_cmd_select_pipe(struct etnaviv_gpu *gpu,
 		       VIVS_GL_PIPE_SELECT_PIPE(pipe));
 }
 
-#if 0
-static void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
+void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
 	struct etnaviv_cmdbuf *buf, u32 off, u32 len)
 {
 	u32 size = buf->size;
 	u32 *ptr = buf->vaddr + off;
+	int i;
+	log_debug("virt %p phys 0x%08x free 0x%08x\n", ptr,
+			etnaviv_cmdbuf_get_va(buf) + off, size - len * 4 - off);
 
-	dev_info(gpu->dev, "virt %p phys 0x%08x free 0x%08x\n",
-			ptr, etnaviv_cmdbuf_get_va(buf) + off, size - len * 4 - off);
+	for (i = 0; i < len / 8; i++) {
+		if (i && !(i % 8))
+			printk("\n");
+		if (i % 8 == 0)
+			printk("\t0x%p: ", ptr + i);
+		printk("%08x ", *(ptr + i));
+	}
 
-	print_hex_dump(KERN_INFO, "cmd ", DUMP_PREFIX_OFFSET, 16, 4,
-			ptr, len * 4, 0);
+	printk("\n");
 }
-#endif
+
 /*
  * Safely replace the WAIT of a waitlink with a new command and argument.
  * The GPU may be executing this WAIT while we're modifying it, so we have
@@ -145,8 +153,10 @@ static void etnaviv_buffer_replace_wait(struct etnaviv_cmdbuf *buffer,
 	u32 *lw = buffer->vaddr + wl_offset;
 
 	lw[1] = arg;
+	data_mem_barrier();
 	//mb();
 	lw[0] = cmd;
+	data_mem_barrier();
 	//mb();
 }
 /*
@@ -264,7 +274,6 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 
 	link_target = etnaviv_cmdbuf_get_va(cmdbuf);
 	link_dwords = cmdbuf->size / 8;
-
 	/*
 	 * If we need maintanence prior to submitting this buffer, we will
 	 * need to append a mmu flush load state, followed by a new

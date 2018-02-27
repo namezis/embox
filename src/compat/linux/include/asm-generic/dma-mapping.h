@@ -23,12 +23,11 @@ struct device;
  */
 static inline void *dma_alloc_coherent(struct device *dev, size_t size,
 		dma_addr_t *handle, gfp_t flag) {
-	void *mem = sysmalloc(size);
+	void *mem = sysmemalign(4096, size);
 	mmu_ctx_t ctx = vmem_current_context();
 	vmem_page_flags_t flags = VMEM_PAGE_WRITABLE;
 
 	vmem_page_set_flags(ctx, (mmu_vaddr_t) mem, flags);
-
 	return mem;
 }
 

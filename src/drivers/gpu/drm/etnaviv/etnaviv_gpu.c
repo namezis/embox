@@ -627,11 +627,14 @@ static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 	etnaviv_iommu_restore(gpu);
 
 	/* Start command processor */
-	prefetch = etnaviv_buffer_init(gpu);
-
 	gpu_write(gpu, VIVS_HI_INTR_ENBL, ~0U);
-	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
-			     prefetch);
+
+	if (0) {
+		prefetch = etnaviv_buffer_init(gpu);
+
+		etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
+				     prefetch);
+	}
 }
 
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
@@ -1349,12 +1352,6 @@ void etnaviv_gpu_pm_put(struct etnaviv_gpu *gpu)
 int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf)
 {
-#if 0
-	gpu_write(gpu, 0x14, ~0);
-	etnaviv_gpu_start_fe(gpu, (int)cmdbuf->vaddr, 2);
-
-	return 0;
-#endif
 	//struct dma_fence *fence;
 	unsigned int event = 0, i;
 	int ret;
@@ -1425,6 +1422,8 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	cmdbuf->nr_bos = submit->nr_bos;
 //	hangcheck_timer_reset(gpu);
 	ret = 0;
+
+	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(cmdbuf), cmdbuf->user_size / 8);
 
 //out_unlock:
 //	mutex_unlock(&gpu->lock);

@@ -57,7 +57,7 @@ etnaviv_cmdbuf_suballoc_new(struct etnaviv_gpu * gpu)
 	//mutex_init(&suballoc->lock);
 	//init_waitqueue_head(&suballoc->free_event);
 
-	suballoc->paddr = (int) sysmalloc(SUBALLOC_SIZE); //dma_alloc_wc(gpu->dev, SUBALLOC_SIZE,
+	suballoc->paddr = (int) sysmemalign(0x10000, SUBALLOC_SIZE); //dma_alloc_wc(gpu->dev, SUBALLOC_SIZE,
 	suballoc->vaddr = (void*) suballoc->paddr;
 //				       &suballoc->paddr, GFP_KERNEL);
 	if (!suballoc->vaddr)
@@ -151,7 +151,7 @@ void etnaviv_cmdbuf_free(struct etnaviv_cmdbuf *cmdbuf)
 u32 etnaviv_cmdbuf_get_va(struct etnaviv_cmdbuf *buf)
 {
 	log_debug("suballoc %p iova %p offset %p\n", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
-	return buf->suballoc->iova + buf->suballoc_offset;
+	return ((uint32_t) buf->vaddr) - 0x10000000;
 }
 
 dma_addr_t etnaviv_cmdbuf_get_pa(struct etnaviv_cmdbuf *buf)
