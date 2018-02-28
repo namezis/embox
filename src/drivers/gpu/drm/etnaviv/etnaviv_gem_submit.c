@@ -63,7 +63,7 @@ static struct etnaviv_gem_submit *submit_create(struct drm_device *dev,
 
 	return submit;
 }
-#if 0
+
 static int submit_lookup_objects(struct etnaviv_gem_submit *submit,
 	struct drm_file *file, struct drm_etnaviv_gem_submit_bo *submit_bos,
 	unsigned nr_bos)
@@ -111,7 +111,7 @@ out_unlock:
 
 	return ret;
 }
-#endif
+
 #if 0
 static void submit_unlock_object(struct etnaviv_gem_submit *submit, int i)
 {
@@ -221,16 +221,16 @@ static int submit_pin_objects(struct etnaviv_gem_submit *submit)
 	int i, ret = 0;
 
 	for (i = 0; i < submit->nr_bos; i++) {
-	//	struct etnaviv_gem_object *etnaviv_obj = submit->bos[i].obj;
+		struct etnaviv_gem_object *etnaviv_obj = submit->bos[i].obj;
 		struct etnaviv_vram_mapping *mapping;
 
-		mapping = 0;//etnaviv_gem_mapping_get(&etnaviv_obj->base,
-			//			  submit->gpu);
+		mapping = etnaviv_gem_mapping_get(&etnaviv_obj->base,
+						  submit->gpu);
 		//if (IS_ERR(mapping)) {
 			//ret = PTR_ERR(mapping);
 		//	break;
 		//}
-
+		log_debug("map for %d is %p\n", i, mapping);
 		submit->bos[i].flags |= BO_PINNED;
 		submit->bos[i].mapping = mapping;
 	}
@@ -246,7 +246,7 @@ static int submit_bo(struct etnaviv_gem_submit *submit, u32 idx,
 				idx, submit->nr_bos);
 		submit->nr_bos = idx;
 
-		//return -EINVAL;
+		return -EINVAL;
 	}
 
 	*bo = &submit->bos[idx];
@@ -296,8 +296,7 @@ static int submit_reloc(struct etnaviv_gem_submit *submit, void *stream,
 			DRM_ERROR("relocation %u outside object", i);
 			return -EINVAL;
 		}
-
-		ptr[off] = bo->mapping->iova + r->reloc_offset;
+		ptr[off] = bo->mapping->iova + (uint32_t) r->reloc_offset;
 
 		last_offset = off;
 	}
@@ -330,9 +329,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	struct etnaviv_gem_submit *submit;
 	struct etnaviv_cmdbuf *cmdbuf;
 	struct etnaviv_gpu *gpu;
-	//struct dma_fence *in_fence = NULL;
-	//struct sync_file *sync_file = NULL;
-	//int out_fence_fd = -1;
 	void *stream;
 	int ret;
 
@@ -357,18 +353,17 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 		return -EINVAL;
 	}
 
-	//if (args->flags & ~ETNA_SUBMIT_FLAGS) {
-	//	DRM_ERROR("invalid flags: 0x%x\n", args->flags);
-	//	return -EINVAL;
-	//}
+	/* if (args->flags & ~ETNA_SUBMIT_FLAGS) {
+		DRM_ERROR("invalid flags: 0x%x\n", args->flags);
+		return -EINVAL;
+	} */
 
 	/*
 	 * Copy the command submission and bo array to kernel space in
 	 * one go, and do this outside of any locks.
 	 */
-	bos = drm_malloc_ab(args->nr_bos, sizeof(*bos));
-	relocs = drm_malloc_ab(args->nr_relocs, sizeof(*relocs));
-//	stream = at//drm_malloc_ab(1, args->stream_size);
+	bos = (void *) (uint32_t) args->bos;
+	relocs = (void *) (uint32_t) args->relocs;
 	cmdbuf = etnaviv_cmdbuf_new(gpu->cmdbuf_suballoc,
 				    ALIGN(args->stream_size, 8) + 8,
 				    args->nr_bos);
@@ -379,20 +374,6 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	cmdbuf->exec_state = args->exec_state;
 	cmdbuf->ctx = file->driver_priv;
-
-	ret = copy_from_user(bos, u64_to_user_ptr(args->bos),
-			     args->nr_bos * sizeof(*bos));
-	if (ret) {
-		ret = -EFAULT;
-		goto err_submit_cmds;
-	}
-
-	ret = copy_from_user(relocs, u64_to_user_ptr(args->relocs),
-			     args->nr_relocs * sizeof(*relocs));
-	if (ret) {
-		ret = -EFAULT;
-		goto err_submit_cmds;
-	}
 
 	stream = (void *) (int) args->stream;
 	//if (args->flags & ETNA_SUBMIT_FENCE_FD_OUT) {
@@ -412,10 +393,9 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	submit->flags = 0;//args->flags;
 
-	/* ret = submit_lookup_objects(submit, file, bos, args->nr_bos);
-	printf("trace %s %d\n", __func__, __LINE__);
+	ret = submit_lookup_objects(submit, file, bos, args->nr_bos);
 	if (ret)
-		goto err_submit_objects; */
+		goto err_submit_objects;
 /*
 	ret = submit_lock_objects(submit);
 	if (ret)
@@ -450,23 +430,22 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto err_submit_objects;
 #endif
-	if (0) {
 	ret = submit_pin_objects(submit);
-	if (ret)
+	if (ret) {
+		log_error("submit_pit_objects failed with %d", ret);
 		goto out;
 	}
-	static uint8_t tb[1024 * 1024] __attribute__ ((aligned(0x1000)));
-	memcpy(tb, stream, args->stream_size);
-	stream = &tb[0];
-	if (0) {
+
 	ret = submit_reloc(submit, stream, args->stream_size / 4,
 			   relocs, args->nr_relocs);
-	if (ret)
+	if (ret) {
+		log_error("submit_reloc fail");
 		goto out;
 	}
+
 	memcpy(cmdbuf->vaddr, stream, args->stream_size);
 	cmdbuf->user_size = ALIGN(args->stream_size, 8);
-	cmdbuf->vaddr = stream;
+
 	ret = etnaviv_gpu_submit(gpu, submit, cmdbuf);
 	if (ret == 0)
 		cmdbuf = NULL;

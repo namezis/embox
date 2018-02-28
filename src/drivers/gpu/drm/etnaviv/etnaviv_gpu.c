@@ -1349,6 +1349,10 @@ void etnaviv_gpu_pm_put(struct etnaviv_gpu *gpu)
 
 #endif
 /* add bo's to gpu's ring, and kick gpu: */
+extern void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
+	struct etnaviv_cmdbuf *buf, u32 off, u32 len);
+
+extern void dcache_flush(const void *p, size_t size);
 int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf)
 {
@@ -1395,7 +1399,7 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 		gpu->lastctx = cmdbuf->ctx;
 	}
 
-	etnaviv_buffer_queue(gpu, event, cmdbuf);
+	if (0) etnaviv_buffer_queue(gpu, event, cmdbuf);
 
 	//cmdbuf->fence = fence;
 	//list_add_tail(&cmdbuf->node, &gpu->active_cmd_list);
@@ -1423,6 +1427,8 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 //	hangcheck_timer_reset(gpu);
 	ret = 0;
 
+	etnaviv_buffer_dump(gpu, cmdbuf, 0, cmdbuf->user_size);
+	dcache_flush(cmdbuf->vaddr, 0x1000);
 	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(cmdbuf), cmdbuf->user_size / 8);
 
 //out_unlock:

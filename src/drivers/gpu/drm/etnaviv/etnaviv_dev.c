@@ -309,8 +309,23 @@ static int etnaviv_dev_idesc_status(struct idesc *idesc, int mask) {
 	return 0;
 }
 
+static uint8_t local_buffer[16 * 1024 * 1024] __attribute__ ((aligned (0x1000)));
+static int ptr = 0;
+static void *etnaviv_dev_idesc_mmap(struct idesc *idesc, void *addr, size_t len, int prot,
+			int flags, int fd, off_t off) {
+	void *res = &local_buffer[ptr];
+	struct drm_gem_object *obj;
+	obj = (void *) (uint32_t) off;
+
+	obj->dma_buf = res;
+
+	ptr += len;
+
+	return res;
+}
+
 static struct file_operations etnaviv_dev_ops = {
-		.open = etnaviv_dev_open,
+	.open = etnaviv_dev_open,
 };
 
 static struct idesc_ops etnaviv_dev_idesc_ops = {
@@ -320,6 +335,7 @@ static struct idesc_ops etnaviv_dev_idesc_ops = {
 	.ioctl  = etnaviv_dev_idesc_ioctl,
 	.fstat  = etnaviv_dev_idesc_fstat,
 	.status = etnaviv_dev_idesc_status,
+	.idesc_mmap = etnaviv_dev_idesc_mmap,
 };
 
 CHAR_DEV_DEF(ETNAVIV_DEV_NAME, &etnaviv_dev_ops, &etnaviv_dev_idesc_ops, NULL);

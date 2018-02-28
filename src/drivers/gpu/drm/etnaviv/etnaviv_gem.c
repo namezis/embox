@@ -104,21 +104,16 @@ int etnaviv_gem_new_handle(struct drm_device *dev, struct drm_file *file,
 	struct drm_gem_object *obj;
 	int ret;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	obj = __etnaviv_gem_new(dev, size, flags);
-	printf("new obj is %p\n", obj);
 	if (err(obj))
 		return (int) obj;
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	ret = etnaviv_gem_obj_add(dev, obj);
 	if (ret < 0) {
 		return ret;
 	}
-	printf("trace %s %d\n", __func__, __LINE__);
 	ret = drm_gem_handle_create(file, obj, handle);
 
-	printf("trace %s %d\n", __func__, __LINE__);
 	/* drop reference from allocate - handle holds it now */
 	//drm_gem_object_unreference_unlocked(obj);
 
@@ -154,10 +149,29 @@ int etnaviv_gem_mmap_offset(struct drm_gem_object *obj, uint64_t *offset)
 	ret = drm_gem_create_mmap_offset(obj);
 	if (ret) {
 		log_error("could not allocate mmap offset");
-	}
-	else {
+	} else {
 		*offset = drm_vma_node_offset_addr(&obj->vma_node);
 	}
 
 	return ret;
+}
+
+struct etnaviv_vram_mapping *etnaviv_gem_mapping_get(
+	struct drm_gem_object *obj, struct etnaviv_gpu *gpu)
+{
+	struct etnaviv_gem_object *etnaviv_obj = to_etnaviv_bo(obj);
+	struct etnaviv_vram_mapping *mapping;
+
+	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
+	if (!mapping) {
+		return 0;
+	}
+
+	//INIT_LIST_HEAD(&mapping->scan_node);
+	mapping->object = etnaviv_obj;
+	mapping->iova = (uint32_t) obj->dma_buf - 0x10000000;
+
+	log_debug("object=%p, iova=%p", etnaviv_obj, (void*) mapping->iova);
+
+	return mapping;
 }

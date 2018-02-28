@@ -4,4 +4,6 @@ package third_party.freedesktop.mesa
 module  libdrm_imx6 {
 	source "^BUILD/extbld/^MOD_PATH/install/libdrm.a"
 	source "^BUILD/extbld/^MOD_PATH/install/libdrm_etnaviv.a"
+
+	depends embox.fs.syslib.idesc_mmap
 }

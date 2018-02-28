@@ -95,4 +95,6 @@ struct etnaviv_vram_mapping {
 extern  int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf);
 
+extern struct etnaviv_vram_mapping *etnaviv_gem_mapping_get(
+	struct drm_gem_object *obj, struct etnaviv_gpu *gpu);
 #endif /* SRC_DRIVERS_GPU_DRM_ETNAVIV_ETNAVIV_GEM_H_ */

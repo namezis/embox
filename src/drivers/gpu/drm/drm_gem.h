@@ -76,6 +76,7 @@ struct drm_gem_object {
 	 */
 	int name;
 
+	void *dma_buf;
 };
 
 extern int drm_gem_create_mmap_offset(struct drm_gem_object *obj);
