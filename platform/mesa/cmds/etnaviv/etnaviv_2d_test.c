@@ -71,8 +71,6 @@ static inline void etna_set_state_from_bo(struct etna_cmd_stream *stream,
 		.flags = ETNA_RELOC_READ,
 		.offset = 0,
 	});
-	stream->offset--;
-	etna_cmd_stream_emit(stream, (int) etna_bo_map(bo) - 0x10000000);
 }
 
 static void gen_cmd_stream(struct etna_cmd_stream *stream, struct etna_bo *bmp, const int width, const int height)
