@@ -35,6 +35,7 @@ module_param_named(dump_core, etnaviv_dump_core, bool, 0600);
  * Driver functions:
  */
 
+extern void dcache_flush(const void *p, size_t size);
 int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, u32 param, u64 *value)
 {
 	switch (param) {
@@ -544,6 +545,7 @@ static void etnaviv_gpu_enable_mlcg(struct etnaviv_gpu *gpu) {
 
 void etnaviv_gpu_start_fe(struct etnaviv_gpu *gpu, u32 address, u16 prefetch)
 {
+	dcache_flush((void *) (address + 0x10000000), prefetch * 8);
 	gpu_write(gpu, VIVS_FE_COMMAND_ADDRESS, address);
 	gpu_write(gpu, VIVS_FE_COMMAND_CONTROL,
 		  VIVS_FE_COMMAND_CONTROL_ENABLE |
@@ -629,12 +631,10 @@ static void etnaviv_gpu_hw_init(struct etnaviv_gpu *gpu)
 	/* Start command processor */
 	gpu_write(gpu, VIVS_HI_INTR_ENBL, ~0U);
 
-	if (0) {
-		prefetch = etnaviv_buffer_init(gpu);
+	prefetch = etnaviv_buffer_init(gpu);
 
-		etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
-				     prefetch);
-	}
+	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(gpu->buffer),
+			     prefetch);
 }
 
 int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
@@ -1352,7 +1352,6 @@ void etnaviv_gpu_pm_put(struct etnaviv_gpu *gpu)
 extern void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
 	struct etnaviv_cmdbuf *buf, u32 off, u32 len);
 
-extern void dcache_flush(const void *p, size_t size);
 int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	struct etnaviv_gem_submit *submit, struct etnaviv_cmdbuf *cmdbuf)
 {
@@ -1399,7 +1398,7 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 		gpu->lastctx = cmdbuf->ctx;
 	}
 
-	if (0) etnaviv_buffer_queue(gpu, event, cmdbuf);
+	etnaviv_buffer_queue(gpu, event, cmdbuf);
 
 	//cmdbuf->fence = fence;
 	//list_add_tail(&cmdbuf->node, &gpu->active_cmd_list);
@@ -1429,7 +1428,9 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 
 	etnaviv_buffer_dump(gpu, cmdbuf, 0, cmdbuf->user_size);
 	dcache_flush(cmdbuf->vaddr, 0x1000);
-	etnaviv_gpu_start_fe(gpu, etnaviv_cmdbuf_get_va(cmdbuf), cmdbuf->user_size / 8);
+	etnaviv_buffer_dump(gpu, gpu->buffer, 0, gpu->buffer->user_size);
+	dcache_flush(gpu->buffer->vaddr, 0x1000);
+
 
 //out_unlock:
 //	mutex_unlock(&gpu->lock);

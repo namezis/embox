@@ -128,7 +128,7 @@ retry:
 	//mutex_unlock(&suballoc->lock);
 	cmdbuf->suballoc_offset = granule_offs * SUBALLOC_GRANULE;
 	cmdbuf->vaddr = suballoc->vaddr + cmdbuf->suballoc_offset;
-
+	suballoc->vaddr += SUBALLOC_GRANULE;
 	return cmdbuf;
 }
 
