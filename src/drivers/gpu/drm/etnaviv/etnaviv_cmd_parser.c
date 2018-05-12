@@ -16,6 +16,8 @@
 
 //#include <linux/kernel.h>
 
+#include <util/log.h>
+
 #include "etnaviv_compat.h"
 #include "etnaviv_gem.h"
 #include "etnaviv_gpu.h"
@@ -170,19 +172,24 @@ bool etnaviv_cmd_validate_one(struct etnaviv_gpu *gpu, u32 *stream,
 	state.num_relocs = reloc_size;
 	state.start = stream;
 
+	log_debug("gpu(%p) stream(%p) size(%d) relocs(%p) reloc_size(%d)",  gpu,
+			stream, size, relocs, reloc_size);
 	while (buf < end) {
 		u32 cmd = *buf;
 		unsigned int len, n, off;
 		unsigned int op = cmd >> 27;
+		log_debug("buf(%p) cmd(%x) op(%x)", buf, cmd, op);
 
 		switch (op) {
 		case FE_OPCODE_LOAD_STATE:
 			n = EXTRACT(cmd, VIV_FE_LOAD_STATE_HEADER_COUNT);
 			len = ALIGN(1 + n, 2);
+			log_debug("FE_OPCODE_LOAD_STATE: n(%x) len(%x) end(%x)", n, len, end);
 			if (buf + len > end)
 				break;
 
 			off = EXTRACT(cmd, VIV_FE_LOAD_STATE_HEADER_OFFSET);
+			log_debug("FE_OPCODE_LOAD_STATE: n(%x) cmd(%x) off(%x)", n, len, off);
 			if (!etnaviv_validate_load_state(&state, buf + 1,
 							 off, n))
 				return false;
@@ -193,10 +200,12 @@ bool etnaviv_cmd_validate_one(struct etnaviv_gpu *gpu, u32 *stream,
 			if (n == 0)
 				n = 256;
 			len = 2 + n * 2;
+			log_debug("FE_OPCODE_DRAW_2D: n(%x) len(%x)", n, len);
 			break;
 
 		default:
 			len = cmd_length[op];
+			log_debug("default: n(%x) len(%x) op(%x)", n, len, op);
 			if (len == 0) {
 				log_error("%s: op %u not permitted at offset %tu\n",
 					__func__, op, buf - state.start);

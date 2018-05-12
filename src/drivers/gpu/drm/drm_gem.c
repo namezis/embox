@@ -16,7 +16,11 @@
 #include <embox_drm/drm_gem.h>
 #include <embox_drm/drm_priv.h>
 
+
+#define PHYS_OFFSET 0x10000000 /* Start of RAM */
+
 int drm_gem_create_mmap_offset(struct drm_gem_object *obj) {
+	obj->vma_node.vm_node.start = PHYS_OFFSET >> PAGE_SHIFT;
 	return 0;
 }
 

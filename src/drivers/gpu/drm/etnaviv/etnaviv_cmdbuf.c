@@ -152,9 +152,14 @@ u32 etnaviv_cmdbuf_get_va(struct etnaviv_cmdbuf *buf)
 {
 	log_debug("suballoc %p iova %p offset %p\n", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
 	return ((uint32_t) buf->vaddr) - 0x10000000;
+#if 0
+	log_debug("suballoc %p iova %p offset %p", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
+	return buf->suballoc->iova + buf->suballoc_offset;
+#endif
 }
 
 dma_addr_t etnaviv_cmdbuf_get_pa(struct etnaviv_cmdbuf *buf)
 {
 	return buf->suballoc->paddr + buf->suballoc_offset;
 }
+
