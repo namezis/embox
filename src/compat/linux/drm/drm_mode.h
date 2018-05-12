@@ -27,7 +27,7 @@
 #ifndef _DRM_MODE_H
 #define _DRM_MODE_H
 
-#include "drm.h"
+#include <uapi/drm/drm.h>
 
 #if defined(__cplusplus)
 extern "C" {

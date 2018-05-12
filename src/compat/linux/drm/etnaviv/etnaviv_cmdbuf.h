@@ -17,7 +17,10 @@
 #ifndef __ETNAVIV_CMDBUF_H__
 #define __ETNAVIV_CMDBUF_H__
 
+#include <stddef.h>
+
 #include <linux/types.h>
+#include <linux/list.h>
 
 struct etnaviv_gpu;
 struct etnaviv_cmdbuf_suballoc;

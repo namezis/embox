@@ -704,7 +704,7 @@ struct drm_prime_handle {
 }
 #endif
 
-#include "drm_mode.h"
+#include <uapi/drm/drm_mode.h>
 
 #if defined(__cplusplus)
 extern "C" {

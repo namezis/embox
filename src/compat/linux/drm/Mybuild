@@ -16,6 +16,11 @@ module drm {
 	source "etnaviv/etnaviv_gem.c"
 	source "etnaviv/etnaviv_gpu.c"
 	source "etnaviv/etnaviv_mmu.c"
+	
+	@IncludeExport(path="uapi/drm")
+	source "drm.h"
+	@IncludeExport(path="uapi/drm")
+	source "drm_mode.h"
 
 	depends embox.driver.block_dvfs
 }

@@ -32,10 +32,12 @@
 
 #include <linux/types.h>
 #include <linux/completion.h>
+#include <linux/list.h>
 
-//#include <uapi/drm/drm.h>
+#include <uapi/drm/drm.h>
 
 #include <drm/drm_prime.h>
+#include <linux/wait.h>
 
 struct dma_fence;
 struct drm_file;
@@ -145,6 +147,9 @@ struct drm_pending_event {
 	struct list_head pending_link;
 };
 
+struct idr {
+	int a;
+};
 /**
  * struct drm_file - DRM file private data
  *
@@ -355,9 +360,10 @@ static inline bool drm_is_control_client(const struct drm_file *file_priv)
 }
 
 int drm_open(struct inode *inode, struct file *filp);
-ssize_t drm_read(struct file *filp, char __user *buffer,
-		 size_t count, loff_t *offset);
+/* ssize_t drm_read(struct file *filp, char __user *buffer,
+		 size_t count, loff_t *offset); */
 int drm_release(struct inode *inode, struct file *filp);
+struct poll_table_struct;
 unsigned int drm_poll(struct file *filp, struct poll_table_struct *wait);
 int drm_event_reserve_init_locked(struct drm_device *dev,
 				  struct drm_file *file_priv,

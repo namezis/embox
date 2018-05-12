@@ -31,6 +31,9 @@
 
 #ifndef __DRM_PRIME_H__
 #define __DRM_PRIME_H__
+
+#include <linux/types.h>
+
 #include <kernel/thread/sync/mutex.h>
 //#include <linux/mutex.h>
 //#include <linux/rbtree.h>
@@ -71,6 +74,8 @@ struct dma_buf *drm_gem_dmabuf_export(struct drm_device *dev,
 				      struct dma_buf_export_info *exp_info);
 void drm_gem_dmabuf_release(struct dma_buf *dma_buf);
 
+struct page;
+struct sg_table;
 int drm_prime_sg_to_page_addr_arrays(struct sg_table *sgt, struct page **pages,
 				     dma_addr_t *addrs, int max_pages);
 struct sg_table *drm_prime_pages_to_sg(struct page **pages, unsigned int nr_pages);

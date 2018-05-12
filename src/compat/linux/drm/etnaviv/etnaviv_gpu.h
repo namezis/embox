@@ -17,8 +17,8 @@
 #ifndef __ETNAVIV_GPU_H__
 #define __ETNAVIV_GPU_H__
 
-#include <linux/clk.h>
-#include <linux/regulator/consumer.h>
+//#include <linux/clk.h>
+//#include <linux/regulator/consumer.h>
 
 #include "etnaviv_drv.h"
 

@@ -69,12 +69,13 @@ struct drm_etnaviv_timespec {
 
 #define ETNA_MAX_PIPES 4
 
+#if 0
 struct drm_etnaviv_param {
 	__u32 pipe;           /* in */
 	__u32 param;          /* in, ETNAVIV_PARAM_x */
 	__u64 value;          /* out (get_param) or in (set_param) */
 };
-
+#endif
 /*
  * GEM buffers:
  */
