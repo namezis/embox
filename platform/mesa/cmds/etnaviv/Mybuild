@@ -62,3 +62,55 @@ module drmdevice {
 	depends third_party.freedesktop.mesa.libglu_imx6
 	depends third_party.freedesktop.mesa.libdrm_imx6
 }
+
+@BuildDepends(third_party.freedesktop.mesa.libdrm_imx6)
+@Build(stage=2,script="true")
+module rotate_cube {
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_imx6/glu-9.0.0/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm/")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/")
+	@IncludePath("$(ROOT_DIR)/platform/mesa/cmds/include_imx6_v4_6_9/")
+	source "rotate_cube.c"
+
+	//depends third_party.freedesktop.mesa.mesa_imx6
+	//depends third_party.freedesktop.mesa.libglu_imx6
+	depends third_party.freedesktop.mesa.libdrm_imx6
+}
+
+@AutoCmd
+@Cmd(name = "cube_etna2",
+	help = "Adopted osdemo application from mesa_demo",
+	man = '''
+		NAME
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		SYNOPSIS
+			osdemo_fb
+		DESCRIPTION
+			osdemo_fb - Adopted osdemo application from mesa_demo
+		AUTHORS
+			Anton Bondarev
+	''')
+@BuildDepends(third_party.freedesktop.mesa.libdrm_imx6)
+@Build(stage=2,script="true")
+module cube_etna2 {
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_imx6/glu-9.0.0/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include/drm/")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/include")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/etnaviv")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libdrm_imx6/libdrm-2.4.79/")
+	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/src/gallium/drivers")
+	@IncludePath("$(ROOT_DIR)/platform/mesa/cmds/include_imx6_v4_6_9/")
+	@IncludePath("$(ROOT_DIR)/platform/mesa/cmds/")
+	@IncludePath("$(ROOT_DIR)//build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/src/gallium/include")
+	@IncludePath("$(ROOT_DIR)//build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/src/")
+	source "cube_etna2.c", "viv_compat.c"
+
+	//depends third_party.freedesktop.mesa.mesa_imx6
+	//depends third_party.freedesktop.mesa.libglu_imx6
+	depends third_party.freedesktop.mesa.libdrm_imx6
+	depends embox.mesa.lib.estransform
+}
