@@ -1,0 +1,8 @@
+package embox.mesa.lib
+
+module estransform {
+	@IncludeExport
+	source "esTransform.h"
+
+	source "esTransform.c"
+}
