@@ -19,8 +19,7 @@ package embox.cmd
 module osdemo_fb {
 	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_osmesa/glu-9.0.0/include")
 	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_osmesa/mesa-17.0.3/include")
-	source "osdemo_fb.c"
-	source "text_layout.c"
+	source "osdemo_fb.c", "text_layout.c"
 
 	depends embox.driver.video.fonts
 
@@ -47,7 +46,7 @@ module osdemo_fb {
 module osdemo_imx6 {
 	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/libglu_imx6/glu-9.0.0/include")
 	@IncludePath("$(ROOT_DIR)/build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/include")
-	source "osdemo_fb.c"
+	source "osdemo_fb.c", "text_layout.c"
 
 	depends third_party.freedesktop.mesa.mesa_imx6
 	depends third_party.freedesktop.mesa.libglu_imx6
