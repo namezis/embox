@@ -368,7 +368,7 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	CMD_LINK(buffer, 2, etnaviv_cmdbuf_get_va(buffer) +
 			    buffer->user_size - 4);
 
-	log_debug("stream link to 0x%08x @ 0x%08x %p\n",
+	log_debug("stream link to 0x%08x @ 0x%08x %p",
 			return_target, etnaviv_cmdbuf_get_va(cmdbuf),
 			cmdbuf->vaddr);
 
@@ -376,10 +376,10 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 		//print_hex_dump(KERN_INFO, "cmd ", DUMP_PREFIX_OFFSET, 16, 4,
 		//	       cmdbuf->vaddr, cmdbuf->size, 0);
 
-		log_debug("link op: %p\n", buffer->vaddr + waitlink_offset);
-		log_debug("addr: 0x%08x\n", link_target);
-		log_debug("back: 0x%08x\n", return_target);
-		log_debug("event: %d\n", event);
+		log_debug("link op: %p", buffer->vaddr + waitlink_offset);
+		log_debug("addr: 0x%08x", link_target);
+		log_debug("back: 0x%08x", return_target);
+		log_debug("event: %d", event);
 	//}
 
 	/*

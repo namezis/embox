@@ -150,7 +150,7 @@ void etnaviv_cmdbuf_free(struct etnaviv_cmdbuf *cmdbuf)
 
 u32 etnaviv_cmdbuf_get_va(struct etnaviv_cmdbuf *buf)
 {
-	log_debug("suballoc %p iova %p offset %p\n", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
+	log_debug("suballoc %p iova %p offset %p", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
 	return ((uint32_t) buf->vaddr) - 0x10000000;
 #if 0
 	log_debug("suballoc %p iova %p offset %p", buf->suballoc, (void*) buf->suballoc->iova, (void*) buf->suballoc_offset);
