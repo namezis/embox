@@ -59,6 +59,8 @@ static struct etnaviv_gem_submit *submit_create(struct drm_device *dev,
 		submit->nr_bos = 0;
 
 		//ww_acquire_init(&submit->ticket, &reservation_ww_class);
+	} else {
+		log_error("failed to kmalloc()");
 	}
 
 	return submit;
@@ -332,16 +334,18 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	void *stream;
 	int ret;
 
-	log_debug("Pipe is %d\n", args->pipe);
-	if (args->pipe >= ETNA_MAX_PIPES)
+	log_debug("Pipe is %d", args->pipe);
+	if (args->pipe >= ETNA_MAX_PIPES) {
 		return -EINVAL;
+	}
 
 	gpu = priv->gpu[args->pipe];
-	if (!gpu)
+	if (!gpu) {
 		return -ENXIO;
+	}
 
 	if (args->stream_size % 4) {
-		log_error("non-aligned cmdstream buffer size: %u\n",
+		log_error("non-aligned cmdstream buffer size: %u",
 			  args->stream_size);
 		return -EINVAL;
 	}
@@ -349,7 +353,7 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (args->exec_state != ETNA_PIPE_3D &&
 	    args->exec_state != ETNA_PIPE_2D &&
 	    args->exec_state != ETNA_PIPE_VG) {
-		DRM_ERROR("invalid exec_state: 0x%x\n", args->exec_state);
+		DRM_ERROR("invalid exec_state: 0x%x", args->exec_state);
 		return -EINVAL;
 	}
 
@@ -367,7 +371,8 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	cmdbuf = etnaviv_cmdbuf_new(gpu->cmdbuf_suballoc,
 				    ALIGN(args->stream_size, 8) + 8,
 				    args->nr_bos);
-	if (!bos || !relocs || !cmdbuf) {
+	if (/* !bos || !relocs || */ !cmdbuf) {
+		log_error("smth is null bos %p relocs %p cmdbuf %p", bos, relocs, cmdbuf);
 		ret = -ENOMEM;
 		goto err_submit_cmds;
 	}
@@ -393,18 +398,22 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	submit->flags = 0;//args->flags;
 
-	ret = submit_lookup_objects(submit, file, bos, args->nr_bos);
-	if (ret)
-		goto err_submit_objects;
+	if (bos) {
+		ret = submit_lookup_objects(submit, file, bos, args->nr_bos);
+		if (ret)
+			goto err_submit_objects;
+	}
 /*
 	ret = submit_lock_objects(submit);
 	if (ret)
 		goto err_submit_objects;
 */
-	if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
+	if (relocs) {
+		if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
 				      relocs, args->nr_relocs)) {
-		ret = -EINVAL;
-		goto err_submit_objects;
+			ret = -EINVAL;
+			goto err_submit_objects;
+		}
 	}
 #if 0
 	if (args->flags & ETNA_SUBMIT_FENCE_FD_IN) {
@@ -436,11 +445,13 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 		goto out;
 	}
 
-	ret = submit_reloc(submit, stream, args->stream_size / 4,
-			   relocs, args->nr_relocs);
-	if (ret) {
-		log_error("submit_reloc fail");
-		goto out;
+	if (relocs) {
+		ret = submit_reloc(submit, stream, args->stream_size / 4,
+				relocs, args->nr_relocs);
+		if (ret) {
+			log_error("submit_reloc fail");
+			goto out;
+		}
 	}
 
 	memcpy(cmdbuf->vaddr, stream, args->stream_size);
