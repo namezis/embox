@@ -45,7 +45,6 @@
 #define VERSION_DESC_LEN  8
 
 #define ETNAVIV_DEV_NAME "card"
-
 /* Interrupt numbers */
 #define GPU3D_IRQ	OPTION_GET(NUMBER,gpu3d_irq)
 #define R2D_GPU2D_IRQ	OPTION_GET(NUMBER,r2d_gpu2d_irq)
@@ -62,13 +61,13 @@ static int etnaviv_ioctl_get_param(struct drm_device *dev, void *data,
 	struct drm_etnaviv_param *args = data;
 	struct etnaviv_gpu *gpu;
 
-	if (args->pipe >= ETNA_MAX_PIPES)
+	if (args->pipe >= ETNA_MAX_PIPES) {
 		return -EINVAL;
+	}
 
-	gpu = priv->gpu[args->pipe];
-	log_debug("args->pipe = %d", args->pipe);
-	if (!gpu)
+	if (!(gpu = priv->gpu[args->pipe])) {
 		return -ENXIO;
+	}
 
 	return etnaviv_gpu_get_param(gpu, args->param, &args->value);
 }
@@ -78,8 +77,10 @@ int etnaviv_ioctl_gem_new(struct drm_device *dev, void *data, struct drm_file *f
 	struct drm_etnaviv_gem_new *args = data;
 
 	if (args->flags & ~(ETNA_BO_CACHED | ETNA_BO_WC | ETNA_BO_UNCACHED |
-			    ETNA_BO_FORCE_MMU))
-		return -EINVAL;
+			    ETNA_BO_FORCE_MMU)) {
+		log_error("unsupported flags");
+		//return -EINVAL;
+	}
 
 	return etnaviv_gem_new_handle(dev, file, args->size,
 			args->flags, &args->handle);
@@ -187,9 +188,10 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	if (!file) {
 		return err_ptr(ENOMEM);
 	}
+
 	*file = (struct file) {
 		.f_idesc  = {
-				.idesc_ops   = &etnaviv_dev_idesc_ops,
+			.idesc_ops   = &etnaviv_dev_idesc_ops,
 		},
 	};
 
@@ -236,7 +238,7 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 	etnaviv_gpu_init(&etnaviv_gpus[PIPE_ID_PIPE_3D]);
 
 	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
-//	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_3D], "GPU3D");
+	etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU3D");
 
 	return &file->f_idesc;
 }
@@ -263,7 +265,8 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 	struct drm_etnaviv_param *args = data;
 	int res = 0;
 
-	log_debug("pipe=%d, dir=%d, type=%d, nr=%d", args->pipe, _IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
+	log_debug("pipe=%cD, dir=%d, type=%d, nr=%d", args->pipe == PIPE_ID_PIPE_2D ? '2' : '3',
+			_IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
 	switch (nr) {
 	case 0: /* DRM_IOCTL_VERSION */
 		version = data;
@@ -292,7 +295,7 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_WAIT_FENCE:
 		res = etnaviv_ioctl_wait_fence(dev, data, file);
-		etnaviv_gpu_debugfs(&etnaviv_gpus[PIPE_ID_PIPE_2D], "GPU2D");
+		etnaviv_gpu_debugfs(&etnaviv_gpus[args->pipe], args->pipe == 0 ? "GPU3D" : "GPU2D");
 		break;
 	default:
 		log_debug("NIY, request=%d", request);
