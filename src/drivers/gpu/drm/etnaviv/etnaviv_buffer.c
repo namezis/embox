@@ -76,10 +76,13 @@ static inline void CMD_LINK(struct etnaviv_cmdbuf *buffer,
 	u16 prefetch, u32 address)
 {
 	buffer->user_size = ALIGN(buffer->user_size, 8);
+	u32 *vaddr = (u32 *)buffer->vaddr;
+
 
 	OUT(buffer, VIV_FE_LINK_HEADER_OP_LINK |
 		    VIV_FE_LINK_HEADER_PREFETCH(prefetch));
 	OUT(buffer, address);
+	log_debug("Link %p->%p", &vaddr[buffer->user_size - 4], (void *) address);
 }
 
 static inline void CMD_STALL(struct etnaviv_cmdbuf *buffer,
@@ -121,16 +124,24 @@ static void etnaviv_cmd_select_pipe(struct etnaviv_gpu *gpu,
 		       VIVS_GL_PIPE_SELECT_PIPE(pipe));
 }
 
+extern void dcache_flush(const void *p, size_t size);
 void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
 	struct etnaviv_cmdbuf *buf, u32 off, u32 len)
 {
 	u32 size = buf->size;
 	u32 *ptr = buf->vaddr + off;
 	int i;
+
+	dcache_flush(ptr, len);
 	log_debug("virt %p phys 0x%08x free 0x%08x\n", ptr,
 			etnaviv_cmdbuf_get_va(buf) + off, size - len * 4 - off);
 
-	for (i = 0; i < len / 8; i++) {
+	if (mod_logger.logging.level == 0) {
+		return;
+	}
+
+
+	for (i = 0; i < len / 4; i++) {
 		if (i && !(i % 8))
 			printk("\n");
 		if (i % 8 == 0)
@@ -272,6 +283,7 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	//if (drm_debug & DRM_UT_DRIVER)
 	//	etnaviv_buffer_dump(gpu, buffer, 0, 0x50);
 
+	log_debug("exec_state=%d", gpu->exec_state);
 	link_target = etnaviv_cmdbuf_get_va(cmdbuf);
 	link_dwords = cmdbuf->size / 8;
 	/*
@@ -368,9 +380,9 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	CMD_LINK(buffer, 2, etnaviv_cmdbuf_get_va(buffer) +
 			    buffer->user_size - 4);
 
-	log_debug("stream link to 0x%08x @ 0x%08x %p",
-			return_target, etnaviv_cmdbuf_get_va(cmdbuf),
-			cmdbuf->vaddr);
+	etnaviv_buffer_dump(gpu, buffer, 0, buffer->user_size);
+	log_debug("stream link to 0x%08x @ 0x%08x",
+			return_target, etnaviv_cmdbuf_get_va(cmdbuf) /*, cmdbuf->vaddr */ );
 
 	//if (drm_debug & DRM_UT_DRIVER) {
 		//print_hex_dump(KERN_INFO, "cmd ", DUMP_PREFIX_OFFSET, 16, 4,
@@ -391,5 +403,8 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 				    VIV_FE_LINK_HEADER_PREFETCH(link_dwords),
 				    link_target);
 
-	//etnaviv_buffer_dump(gpu, buffer, 0, 0x50);
+	etnaviv_buffer_dump(gpu, buffer, 0, buffer->user_size);
+
+
+	etnaviv_gpu_debugfs(&etnaviv_gpus[0], 0 == 0 ? "GPU3D" : "GPU2D");
 }
