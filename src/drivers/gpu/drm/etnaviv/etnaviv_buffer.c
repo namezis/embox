@@ -271,6 +271,8 @@ void etnaviv_buffer_end(struct etnaviv_gpu *gpu)
 	}
 }
 #endif
+
+extern struct etnaviv_gpu etnaviv_gpus[ETNA_MAX_PIPES];
 /* Append a command buffer to the ring buffer. */
 void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	struct etnaviv_cmdbuf *cmdbuf)
