@@ -408,12 +408,10 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto err_submit_objects;
 */
-	if (relocs) {
-		if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
-				      relocs, args->nr_relocs)) {
-			ret = -EINVAL;
-			goto err_submit_objects;
-		}
+	if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
+				relocs, args->nr_relocs)) {
+		ret = -EINVAL;
+		goto err_submit_objects;
 	}
 #if 0
 	if (args->flags & ETNA_SUBMIT_FENCE_FD_IN) {
