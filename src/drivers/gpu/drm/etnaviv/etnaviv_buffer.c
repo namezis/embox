@@ -111,10 +111,10 @@ static void etnaviv_cmd_select_pipe(struct etnaviv_gpu *gpu,
 	 * the 2D core, we need to flush the 3D depth and color caches,
 	 * otherwise we need to flush the 2D pixel engine cache.
 	 */
-//	if (gpu->exec_state == ETNA_PIPE_2D)
+	if (gpu->exec_state == ETNA_PIPE_2D)
 		flush = VIVS_GL_FLUSH_CACHE_PE2D;
-//	else if (gpu->exec_state == ETNA_PIPE_3D)
-//		flush = VIVS_GL_FLUSH_CACHE_DEPTH | VIVS_GL_FLUSH_CACHE_COLOR;
+	else if (gpu->exec_state == ETNA_PIPE_3D)
+		flush = VIVS_GL_FLUSH_CACHE_DEPTH | VIVS_GL_FLUSH_CACHE_COLOR;
 
 	CMD_LOAD_STATE(buffer, VIVS_GL_FLUSH_CACHE, flush);
 	CMD_SEM(buffer, SYNC_RECIPIENT_FE, SYNC_RECIPIENT_PE);
@@ -364,16 +364,16 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	 * Append a cache flush, stall, event, wait and link pointing back to
 	 * the wait command to the ring buffer.
 	 */
-	//if (gpu->exec_state == ETNA_PIPE_2D) {
+	if (gpu->exec_state == ETNA_PIPE_2D) {
 		CMD_LOAD_STATE(buffer, VIVS_GL_FLUSH_CACHE,
 				       VIVS_GL_FLUSH_CACHE_PE2D);
-	/* } else {
+	 } else  {
 		CMD_LOAD_STATE(buffer, VIVS_GL_FLUSH_CACHE,
 				       VIVS_GL_FLUSH_CACHE_DEPTH |
 				       VIVS_GL_FLUSH_CACHE_COLOR);
 		CMD_LOAD_STATE(buffer, VIVS_TS_FLUSH_CACHE,
 				       VIVS_TS_FLUSH_CACHE_FLUSH);
-	} */
+	}
 	CMD_SEM(buffer, SYNC_RECIPIENT_FE, SYNC_RECIPIENT_PE);
 	CMD_STALL(buffer, SYNC_RECIPIENT_FE, SYNC_RECIPIENT_PE);
 	CMD_LOAD_STATE(buffer, VIVS_GL_EVENT, VIVS_GL_EVENT_EVENT_ID(event) |
