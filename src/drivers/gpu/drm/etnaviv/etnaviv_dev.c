@@ -257,6 +257,13 @@ static ssize_t etnaviv_dev_read(struct idesc *desc, const struct iovec *iov, int
 	return 0;
 }
 
+int etnaviv_dmp(int id) {
+	assert(id >= 0 && id < ETNA_MAX_PIPES);
+	etnaviv_gpu_debugfs(&etnaviv_gpus[id],
+		id == PIPE_ID_PIPE_2D ? "GPU2D" : "GPU3D");
+	return 0;
+}
+
 static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data) {
 	drm_version_t *version;
 	int nr = _IOC_NR(request);

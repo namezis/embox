@@ -98,4 +98,5 @@ static inline int dma_get_required_mask(void *dev) {
 
 #define IOMMU_READ	(1 << 0)
 
+int etnaviv_dmp(int id); /* Print debug information about GPU device */
 #endif

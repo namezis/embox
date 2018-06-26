@@ -369,4 +369,5 @@ static inline void etna_draw_indexed_primitives(struct etna_ctx *cmdbuf, uint32_
 
 #endif
 
+extern int etnaviv_dmp(int id); /* Print debug information about GPU device */
 #endif
