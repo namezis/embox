@@ -209,7 +209,8 @@ bool etnaviv_cmd_validate_one(struct etnaviv_gpu *gpu, u32 *stream,
 			if (len == 0) {
 				log_error("%s: op %u not permitted at offset %tu\n",
 					__func__, op, buf - state.start);
-				return false;
+				len = 0; /* Treat as NOP */
+				buf = end;
 			}
 			break;
 		}
