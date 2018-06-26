@@ -778,6 +778,7 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 	u32 dma_lo, dma_hi, axi, idle;
 	int ret;
 	int cmdState, cmdDmaState, cmdFetState, dmaReqState, calState, veReqState;
+	int tmp_level = mod_logger.logging.level;
 	mod_logger.logging.level = 0;
 
 	static const char *_cmdState[] =
@@ -946,7 +947,7 @@ int etnaviv_gpu_debugfs(struct etnaviv_gpu *gpu, char *s) {
 
 	//pm_runtime_mark_last_busy(gpu->dev);
 	//pm_runtime_put_autosuspend(gpu->dev);
-	mod_logger.logging.level = 4;
+	mod_logger.logging.level = tmp_level;
 
 	return ret;
 }
