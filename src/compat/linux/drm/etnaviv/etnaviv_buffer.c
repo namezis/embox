@@ -336,6 +336,7 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	return_dwords = 7;
 	return_target = etnaviv_buffer_reserve(gpu, buffer, return_dwords);
 	CMD_LINK(cmdbuf, return_dwords, return_target);
+	log_debug("We put back link to %p\n", buffer->vaddr + buffer->user_size);
 
 	/*
 	 * Append a cache flush, stall, event, wait and link pointing back to
