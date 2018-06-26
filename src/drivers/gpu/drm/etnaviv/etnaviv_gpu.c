@@ -1428,9 +1428,9 @@ int etnaviv_gpu_submit(struct etnaviv_gpu *gpu,
 	ret = 0;
 
 	etnaviv_buffer_dump(gpu, cmdbuf, 0, cmdbuf->user_size);
-	dcache_flush(cmdbuf->vaddr, 0x1000);
+	dcache_flush(cmdbuf->vaddr, cmdbuf->user_size);
 	etnaviv_buffer_dump(gpu, gpu->buffer, 0, gpu->buffer->user_size);
-	dcache_flush(gpu->buffer->vaddr, 0x1000);
+	dcache_flush(gpu->buffer->vaddr, cmdbuf->user_size);
 
 
 //out_unlock:
