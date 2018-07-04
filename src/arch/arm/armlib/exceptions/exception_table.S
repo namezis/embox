@@ -22,6 +22,7 @@
 #include <asm/regs.h>
 
 .extern irq_handler
+.extern data_abt_handler
 .extern setup_excpt_table
 .extern reset_handler
 
@@ -37,7 +38,7 @@ arm_trap_table:
     ldr pc, undef_handler_addr
     ldr pc, swi_handler_addr
     ldr pc, prefetch_abt_handler_addr
-    b data_abt_prepare
+    ldr pc, data_abt_handler_addr
     nop /*bad exception not_used:		.word not_used*/
     ldr pc, irq_handler_addr
     ldr pc, fiq_handler_addr
@@ -50,59 +51,9 @@ swi_handler_addr:
     .word swi_handler
 prefetch_abt_handler_addr:
     .word prefetch_abt_handler
-.global data_abt_handler_addr
 data_abt_handler_addr:
     .word data_abt_handler
 irq_handler_addr:
     .word irq_handler
 fiq_handler_addr:
     .word fiq_handler
-
-data_abt_prepare:
-	/* Prepare stack and call handler */
-	stmfd r13!, {r0-r3, r14}
-	add r14, pc, #0
-	ldr pc, data_abt_handler_addr
-	ldmfd r13!, {r0-r3, r14}
-	subs pc, lr, #8 // exception return
-
-undef_handler:
-#ifdef __ARM_NEON__
-    sub r14, r14, #4
-
-    stmfd sp!, {r0-r2} /* Save temp regs */
-    mov r2, r14
-    mrs r1, SPSR
-    mov r0, sp         /* Pointer to saved regs */
-    add sp, sp, #12    /* Return SP to previous state */
-
-    msr CPSR, #ARM_MODE_SYS | I_BIT | F_BIT
-    stmfd sp!, {r1}    /* Store arguments for RFE instruction */
-    stmfd sp!, {r2}
-    ldmfd r0, {r0-r2}  /* Restore temp regs */
-
-    mov r0, sp		/* Pointer to registers */
-    stmfd sp!, {r0-r12, r14}
-    bl arm_undefined_exception
-
-    ldmfd sp!, {r0-r12, r14}
-
-    rfe sp!
-#endif /* __ARM_NEON__ */
-
-prefetch_abt_handler:
-fiq_handler:
-    sub r14, r14, #4
-    b arm_unresolvable_exception
-arm_unresolvable_exception:
-    mrc p15, 0, r0, c1, c0, 0
-    and r0, r0, #~CR_M
-    mcr p15, 0, r0, c1, c0, 0
-    ldr sp, =_stack_top
-    nop
-    stmfd sp!, {r0-r12, r14}
-    mrs r0, CPSR
-    mrs r1, SPSR
-    stmfd sp!, {r0, r1}
-    mov r0, sp
-    b arm_exception_handler
