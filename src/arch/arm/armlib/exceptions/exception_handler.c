@@ -36,7 +36,7 @@ void mon_func(void) {
 void arm_exception_handler(unsigned int *regs) {
 	uint32_t val;
 
-	if (((regs[15] & 0x3) == 0) && /* Avoid unaligned access */
+	if (regs && ((regs[15] & 0x3) == 0) && /* Avoid unaligned access */
 		(*(uint32_t*)(regs[15])) == ARM_GDB_BAD_INSTRUCTION) {
 		log_debug("BKPT happened");
 		regs[15] += 4;
