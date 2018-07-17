@@ -319,6 +319,7 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 		break;
 	case DRM_COMMAND_BASE + DRM_ETNAVIV_WAIT_FENCE:
 		res = etnaviv_ioctl_wait_fence(dev, data, file);
+		args->pipe = 0;
 		etnaviv_gpu_debugfs(&etnaviv_gpus[args->pipe], args->pipe == 0 ? "GPU3D" : "GPU2D");
 		break;
 	default:
