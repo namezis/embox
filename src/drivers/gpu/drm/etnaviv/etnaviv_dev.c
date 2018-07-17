@@ -245,6 +245,23 @@ static struct idesc *etnaviv_dev_open(struct inode *node, struct idesc *idesc) {
 
 static void etnaviv_dev_close(struct idesc *desc) {
 	dvfs_destroy_file((struct file *)desc);
+
+	if (irq_detach(	GPU3D_IRQ,
+	                &etnaviv_gpus[PIPE_ID_PIPE_3D])) {
+		log_error("Failed to detach GPU3D_IRQ");
+	}
+
+	if (irq_detach(	R2D_GPU2D_IRQ,
+	                &etnaviv_gpus[PIPE_ID_PIPE_2D])) {
+		log_error("Failed to detach R2D_GPU2D_IRQ");
+	}
+
+	if (irq_detach(	V2D_GPU2D_IRQ,
+	                &etnaviv_gpus[PIPE_ID_PIPE_2D])) {
+		log_error("Failed to detach V2D_GPU2D_IRQ");
+	}
+
+	imx_gpu_power_set(0);
 }
 
 static ssize_t etnaviv_dev_write(struct idesc *desc, const struct iovec *iov, int cnt) {
