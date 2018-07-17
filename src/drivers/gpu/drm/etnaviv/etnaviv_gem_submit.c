@@ -42,7 +42,7 @@
 #define BO_LOCKED   0x4000
 #define BO_PINNED   0x2000
 
-
+extern void dcache_flush(const void *p, size_t size);
 
 static struct etnaviv_gem_submit *submit_create(struct drm_device *dev,
 		struct etnaviv_gpu *gpu, size_t nr)
@@ -408,6 +408,12 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	if (ret)
 		goto err_submit_objects;
 */
+	memcpy(cmdbuf->vaddr, stream, args->stream_size);
+	cmdbuf->user_size = ALIGN(args->stream_size, 8);
+
+	dcache_flush(cmdbuf->vaddr, args->stream_size);
+	dcache_flush(stream, args->stream_size);
+
 	if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
 				relocs, args->nr_relocs)) {
 		ret = -EINVAL;
@@ -452,7 +458,9 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 		}
 	}
 
+	dcache_flush(stream, args->stream_size * 4);
 	memcpy(cmdbuf->vaddr, stream, args->stream_size);
+	dcache_flush(cmdbuf->vaddr, args->stream_size * 4);
 	cmdbuf->user_size = ALIGN(args->stream_size, 8);
 
 	ret = etnaviv_gpu_submit(gpu, submit, cmdbuf);
