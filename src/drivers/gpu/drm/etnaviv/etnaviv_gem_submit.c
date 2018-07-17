@@ -322,6 +322,8 @@ static void submit_cleanup(struct etnaviv_gem_submit *submit)
 	kfree(submit);
 }
 #endif
+extern void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
+	struct etnaviv_cmdbuf *buf, u32 off, u32 len);
 
 int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file *file) {
 	struct etnaviv_drm_private *priv = dev->dev_private;
@@ -335,6 +337,7 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 	int ret;
 
 	log_debug("Pipe is %d", args->pipe);
+	args->pipe = 0;
 	if (args->pipe >= ETNA_MAX_PIPES) {
 		return -EINVAL;
 	}
@@ -377,7 +380,7 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 		goto err_submit_cmds;
 	}
 
-	cmdbuf->exec_state = args->exec_state;
+	cmdbuf->exec_state = args->exec_state * 0; /* XXX */
 	cmdbuf->ctx = file->driver_priv;
 
 	stream = (void *) (int) args->stream;
@@ -410,6 +413,8 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 */
 	memcpy(cmdbuf->vaddr, stream, args->stream_size);
 	cmdbuf->user_size = ALIGN(args->stream_size, 8);
+
+	etnaviv_buffer_dump(gpu, cmdbuf, 0, cmdbuf->user_size);
 
 	dcache_flush(cmdbuf->vaddr, args->stream_size);
 	dcache_flush(stream, args->stream_size);
