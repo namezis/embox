@@ -416,8 +416,8 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data, struct drm_file
 
 	etnaviv_buffer_dump(gpu, cmdbuf, 0, cmdbuf->user_size);
 
-	dcache_flush(cmdbuf->vaddr, args->stream_size);
-	dcache_flush(stream, args->stream_size);
+	dcache_flush(cmdbuf->vaddr, args->stream_size * 4);
+	dcache_flush(stream, args->stream_size * 4);
 
 	if (!etnaviv_cmd_validate_one(gpu, stream, args->stream_size / 4,
 				relocs, args->nr_relocs)) {
