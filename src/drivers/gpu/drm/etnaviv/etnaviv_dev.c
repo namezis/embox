@@ -348,6 +348,8 @@ static void *etnaviv_dev_idesc_mmap(struct idesc *idesc, void *addr, size_t len,
 
 	ptr += len;
 
+	memset(res, 0, len);
+
 	return res;
 }
 
