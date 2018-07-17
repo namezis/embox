@@ -163,7 +163,7 @@ etna_set_state_multi(struct etna_cmd_stream *stream, uint32_t base,
 
 #define etna_finish etna_cmd_stream_finish
 
-#define etna_flush(a, b)	 etna_cmd_stream_flush(a)
+#define etna_flush(a, b)	 { etna_cmd_stream_flush(a); (a)->offset = (a)->size = 0 ;}
 
 static inline void etna_set_state_fixp(struct etna_cmd_stream *cmdbuf, uint32_t address, uint32_t value)
 {
