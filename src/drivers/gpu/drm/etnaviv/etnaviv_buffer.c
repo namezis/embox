@@ -34,6 +34,7 @@
  * Command Buffer helper:
  */
 
+extern void dcache_flush(const void *p, size_t size);
 static inline void OUT(struct etnaviv_cmdbuf *buffer, u32 data)
 {
 	u32 *vaddr = (u32 *)buffer->vaddr;
@@ -41,6 +42,7 @@ static inline void OUT(struct etnaviv_cmdbuf *buffer, u32 data)
 	//BUG_ON(buffer->user_size >= buffer->size);
 
 	vaddr[buffer->user_size / 4] = data;
+	dcache_flush(&vaddr[buffer->user_size / 4], 4);
 	buffer->user_size += 4;
 }
 
@@ -76,13 +78,10 @@ static inline void CMD_LINK(struct etnaviv_cmdbuf *buffer,
 	u16 prefetch, u32 address)
 {
 	buffer->user_size = ALIGN(buffer->user_size, 8);
-	u32 *vaddr = (u32 *)buffer->vaddr;
-
 
 	OUT(buffer, VIV_FE_LINK_HEADER_OP_LINK |
 		    VIV_FE_LINK_HEADER_PREFETCH(prefetch));
 	OUT(buffer, address);
-	log_debug("Link %p->%p", &vaddr[buffer->user_size - 4], (void *) address);
 }
 
 static inline void CMD_STALL(struct etnaviv_cmdbuf *buffer,
@@ -124,7 +123,6 @@ static void etnaviv_cmd_select_pipe(struct etnaviv_gpu *gpu,
 		       VIVS_GL_PIPE_SELECT_PIPE(pipe));
 }
 
-extern void dcache_flush(const void *p, size_t size);
 void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
 	struct etnaviv_cmdbuf *buf, u32 off, u32 len)
 {
@@ -132,7 +130,6 @@ void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
 	u32 *ptr = buf->vaddr + off;
 	int i;
 
-	dcache_flush(ptr, len);
 	log_debug("virt %p phys 0x%08x free 0x%08x\n", ptr,
 			etnaviv_cmdbuf_get_va(buf) + off, size - len * 4 - off);
 
@@ -159,16 +156,15 @@ void etnaviv_buffer_dump(struct etnaviv_gpu *gpu,
  * else.  'wl_offset' is the offset to the first byte of the WAIT command.
  */
 static void etnaviv_buffer_replace_wait(struct etnaviv_cmdbuf *buffer,
-	unsigned int wl_offset, u32 cmd, u32 arg)
-{
+	unsigned int wl_offset, u32 cmd, u32 arg) {
 	u32 *lw = buffer->vaddr + wl_offset;
 
 	lw[1] = arg;
 	data_mem_barrier();
-	//mb();
 	lw[0] = cmd;
 	data_mem_barrier();
-	//mb();
+
+	dcache_flush(lw, 8);
 }
 /*
  * Ensure that there is space in the command buffer to contiguously write
@@ -284,6 +280,8 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	//if (drm_debug & DRM_UT_DRIVER)
 	//	etnaviv_buffer_dump(gpu, buffer, 0, 0x50);
 
+	dcache_flush(buffer->vaddr, buffer->size * 4);
+	dcache_flush(cmdbuf->vaddr, cmdbuf->size * 4);
 	log_debug("exec_state=%d", gpu->exec_state);
 	link_target = etnaviv_cmdbuf_get_va(cmdbuf);
 	link_dwords = cmdbuf->size / 8;
@@ -292,23 +290,24 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 	 * need to append a mmu flush load state, followed by a new
 	 * link to this buffer - a total of four additional words.
 	 */
-	//if (gpu->mmu->need_flush || gpu->switch_context) {
+	if (gpu->mmu.need_flush || gpu->switch_context) {
 		u32 target, extra_dwords;
 
 		/* link command */
 		extra_dwords = 1;
 
 		/* flush command */
-	//	if (gpu->mmu->need_flush) {
-	//		if (gpu->mmu->version == ETNAVIV_IOMMU_V1)
-	//			extra_dwords += 1;
-	//		else
-	//			extra_dwords += 3;
-	//	}
+		if (gpu->mmu.need_flush) {
+			if (gpu->mmu.version == ETNAVIV_IOMMU_V1)
+				extra_dwords += 1;
+			else
+				extra_dwords += 3;
+		}
 
 		/* pipe switch commands */
-	//	if (gpu->switch_context)
+		if (gpu->switch_context) {
 			extra_dwords += 4;
+		}
 
 		target = etnaviv_buffer_reserve(gpu, buffer, extra_dwords);
 
@@ -347,7 +346,7 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 		/* Update the link target to point to above instructions */
 		link_target = target;
 		link_dwords = extra_dwords;
-	//}
+	}
 
 	/*
 	 * Append a LINK to the submitted command buffer to return to
@@ -373,6 +372,7 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 		CMD_LOAD_STATE(buffer, VIVS_TS_FLUSH_CACHE,
 				       VIVS_TS_FLUSH_CACHE_FLUSH);
 	}
+
 	CMD_SEM(buffer, SYNC_RECIPIENT_FE, SYNC_RECIPIENT_PE);
 	CMD_STALL(buffer, SYNC_RECIPIENT_FE, SYNC_RECIPIENT_PE);
 	CMD_LOAD_STATE(buffer, VIVS_GL_EVENT, VIVS_GL_EVENT_EVENT_ID(event) |
@@ -383,17 +383,11 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 
 	etnaviv_buffer_dump(gpu, buffer, 0, buffer->user_size);
 	log_debug("stream link to 0x%08x @ 0x%08x",
-			return_target, etnaviv_cmdbuf_get_va(cmdbuf) /*, cmdbuf->vaddr */ );
-
-	//if (drm_debug & DRM_UT_DRIVER) {
-		//print_hex_dump(KERN_INFO, "cmd ", DUMP_PREFIX_OFFSET, 16, 4,
-		//	       cmdbuf->vaddr, cmdbuf->size, 0);
-
-		log_debug("link op: %p", buffer->vaddr + waitlink_offset);
-		log_debug("addr: 0x%08x", link_target);
-		log_debug("back: 0x%08x", return_target);
-		log_debug("event: %d", event);
-	//}
+			return_target, etnaviv_cmdbuf_get_va(cmdbuf));
+	log_debug("link op: %p", buffer->vaddr + waitlink_offset);
+	log_debug("addr: 0x%08x", link_target);
+	log_debug("back: 0x%08x", return_target);
+	log_debug("event: %d", event);
 
 	/*
 	 * Kick off the submitted command by replacing the previous
@@ -405,6 +399,4 @@ void etnaviv_buffer_queue(struct etnaviv_gpu *gpu, unsigned int event,
 				    link_target);
 
 	etnaviv_buffer_dump(gpu, buffer, 0, buffer->user_size);
-
-	etnaviv_dmp(0);
 }
