@@ -1271,7 +1271,7 @@ static void gen_cmd_stream(struct etna_bo *bmp) {
 	_nocache(etna_bo_map(aux_rt), aux_rt_size);
 	_nocache(etna_bo_map(aux_rt_ts), aux_rt_ts_size);
 	_nocache(etna_bo_map(bmp), width * height * 4);
-	_nocache(local_buffer, 64 * 1024 * 1024);
+	//_nocache(local_buffer, 64 * 1024 * 1024);
 	_nocache(0x00000000, 0xCFFFF000);
 
 	uint32_t *mmu_root = vmem_current_context();
