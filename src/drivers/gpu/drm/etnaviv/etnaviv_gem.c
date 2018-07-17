@@ -22,20 +22,6 @@
 
 
 int etnaviv_gem_obj_add(struct drm_device *dev, struct drm_gem_object *obj) {
-
-	struct etnaviv_drm_private *priv = dev->dev_private;
-	printf("trace %s %d\n", __func__, __LINE__);
-	struct etnaviv_gem_object *etnaviv_obj = to_etnaviv_bo(obj);
-
-	printf("trace %s %d\n", __func__, __LINE__);
-	//pthread_mutex_lock(&priv->gem_lock);
-	printf("trace %s %d\n", __func__, __LINE__);
-	printf("obj=%p,etobj=%p,priv=%p\n", obj, etnaviv_obj, priv);
-	//list_add_tail(&etnaviv_obj->gem_node, &priv->gem_list);
-	printf("trace %s %d\n", __func__, __LINE__);
-	//pthread_mutex_unlock(&priv->gem_lock);
-	printf("trace %s %d\n", __func__, __LINE__);
-
 	return 0;
 }
 
