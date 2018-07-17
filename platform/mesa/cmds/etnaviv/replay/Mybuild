@@ -27,7 +27,7 @@ module cube {
 	@IncludePath("$(ROOT_DIR)/platform/mesa/cmds/")
 	@IncludePath("$(ROOT_DIR)//build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/src/gallium/include")
 	@IncludePath("$(ROOT_DIR)//build/extbld/third_party/freedesktop/mesa/mesa_imx6/mesa-17.0.3/src/")
-	source "cube.c", "viv_raw.c"
+	source "cube.c"
 
 	//depends third_party.freedesktop.mesa.mesa_imx6
 	//depends third_party.freedesktop.mesa.libglu_imx6
