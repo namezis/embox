@@ -99,4 +99,20 @@ static inline int dma_get_required_mask(void *dev) {
 #define IOMMU_READ	(1 << 0)
 
 int etnaviv_dmp(int id); /* Print debug information about GPU device */
+
+#define DRM_ETNAVIV_CALL_NR_MAX        DRM_ETNAVIV_NUM_IOCTLS
+
+static const char *drm_call_to_string[] = {
+	[0x00] =	"GET_PARAM   ",
+	[0x01] =	"SET_PARAM   ",
+	[0x02] =	"GEM_NEW     ",
+	[0x03] =	"GEM_INFO    ",
+	[0x04] =	"GEM_CPU_PREP",
+	[0x05] =	"GEM_CPU_FINI",
+	[0x06] =	"GEM_SUBMIT  ",
+	[0x07] =	"WAIT_FENCE  ",
+	[0x08] =	"GEM_USERPTR ",
+	[0x09] =	"GEM_WAIT    ",
+	[0x0a] =	"NUM_IOCTLS  ",
+};
 #endif

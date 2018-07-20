@@ -289,8 +289,10 @@ static int etnaviv_dev_idesc_ioctl(struct idesc *idesc, int request, void *data)
 	struct drm_etnaviv_param *args = data;
 	int res = 0;
 
-	log_debug("pipe=%cD, dir=%d, type=%d, nr=%d", args->pipe == PIPE_ID_PIPE_2D ? '2' : '3',
-			_IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request));
+ log_debug("trace %d VAL %08x", __LINE__, *((uint32_t *) 0x2d550018));
+	log_debug("pipe=%cD, dir=%d, type=%d, nr=%d (%s)", args->pipe == PIPE_ID_PIPE_2D ? '2' : '3',
+			_IOC_DIR(request), _IOC_TYPE(request), _IOC_NR(request),
+			nr - 0x40 < DRM_ETNAVIV_CALL_NR_MAX ? drm_call_to_string[nr] - 0x40 : "UNKNOWN");
 	switch (nr) {
 	case 0: /* DRM_IOCTL_VERSION */
 		version = data;
