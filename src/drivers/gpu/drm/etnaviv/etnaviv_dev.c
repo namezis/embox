@@ -147,15 +147,28 @@ static irq_return_t etna_irq_handler(unsigned int irq, void *data)
 {
 	struct etnaviv_gpu *gpu = data;
 	irq_return_t ret = IRQ_NONE;
-
+	int noerr = 1;
 	uint32_t intr = gpu_read(gpu, VIVS_HI_INTR_ACKNOWLEDGE);
 
 	if (intr != 0) {
 		log_debug("intr 0x%08x", intr);
 
 		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR) {
+			uint32_t axi_status = gpu_read(gpu, VIVS_HI_AXI_STATUS);
+			gpu_write(gpu, VIVS_HI_INTR_ACKNOWLEDGE,
+					VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR);
 			log_error("AXI bus error");
-			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR;
+			log_debug("AXI config: %08x", gpu_read(gpu, VIVS_HI_AXI_CONFIG));
+			log_debug("AXI status: %08x", axi_status);
+			if (axi_status & VIVS_HI_AXI_STATUS_DET_WR_ERR) {
+				log_error("AXI bus write error ID =0x%x",
+						VIVS_HI_AXI_STATUS_WR_ERR_ID(axi_status));
+			}
+			if (axi_status & VIVS_HI_AXI_STATUS_DET_RD_ERR) {
+				log_error("AXI bus read error ID  =0x%x",
+						VIVS_HI_AXI_STATUS_RD_ERR_ID(axi_status));
+			}
+			noerr = 0;
 		}
 
 		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION) {
@@ -168,10 +181,17 @@ static irq_return_t etna_irq_handler(unsigned int irq, void *data)
 					i, gpu_read(gpu,
 					VIVS_MMUv2_EXCEPTION_ADDR(i)));
 			}
-			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION;
+
+			gpu_write(gpu, VIVS_HI_INTR_ACKNOWLEDGE,
+					VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION);
+
+			noerr = 0 ;
 		}
 
-		log_debug("no error");
+		if (noerr) {
+			log_debug("no error");
+		}
+
 		ret = IRQ_HANDLED;
 	}
 
