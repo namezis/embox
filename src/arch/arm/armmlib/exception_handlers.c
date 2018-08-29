@@ -10,15 +10,32 @@
 #include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <hal/context.h>
+#include <hal/reg.h>
 
 #define NMI        2
 #define HARD_FAULT 3
+
+/* SCB - System Control Block */
+#define SCB_BASE 0xe000ed00
+#define SCB_CONF_FAULT_STATUS (SCB_BASE + 0x28)
+#define SCB_HARD_FAULT_STATUS  (SCB_BASE + 0x2C)
+
 
 static void nmi_handler(void) {
 	panic("\n%s\n", __func__);
 }
 
+static void print_fault_status(void) {
+	uint32_t conf_faults = REG_LOAD(SCB_CONF_FAULT_STATUS);
+
+	printk("Memory Management Fault Status register = %x\n", conf_faults & 0xf);
+	printk("Bus Fault Status register = %x\n", (conf_faults >> 8) & 0xf);
+	printk("Usage Fault Status register = %x\n", (conf_faults >> 16) & 0xff);
+	printk("Hard Fault Status register = %lx\n", REG_LOAD(SCB_HARD_FAULT_STATUS));
+}
+
 static void hard_fault(void) {
+	print_fault_status();
 	panic("\n%s\n", __func__);
 }
 
@@ -41,6 +58,7 @@ void exc_default_handler(struct exc_saved_base_ctx *ctx, int xpsr) {
 		hard_fault();
 		break;
 	default:
-		break;
+		print_fault_status();
+		panic("\n%s\n", __func__);
 	}
 }
