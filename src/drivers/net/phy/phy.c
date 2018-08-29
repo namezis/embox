@@ -83,18 +83,52 @@ int phy_wait_autoneg(struct net_device *dev) {
 
 int phy_try_speed(struct net_device *dev, int speed) {
 	uint32_t reg;
-	phy_write(dev, MII_CTRL1000, net_is_1000(speed) ?
-			ADVERTISE_1000FULL | ADVERTISE_1000HALF : 0);
+	uint32_t gbit = 0;
 
+	log_debug("LPA %08x ADV %08x BMCR %08x", phy_read(dev, MII_LPA), phy_read(dev, MII_ADVERTISE), phy_read(dev, MII_BMCR));
+	if (net_is_1000(speed)) {
+		reg = phy_read(dev, MII_BMSR);
+		if (reg & BMSR_ERCAP) {
+			/* Try to enable 1000mbit mode */
+			reg = phy_read(dev, MII_CTRL1000);
+			reg |= ADVERTISE_1000HALF;
+			if (net_is_fullduplex(speed)) {
+				reg |= ADVERTISE_1000FULL;
+			}
+			phy_write(dev, MII_CTRL1000, reg);
+
+			/* Make sure it's supported both by link and PHY */
+			gbit = phy_read(dev, MII_STAT1000) >> 2;
+			gbit &= phy_read(dev, MII_CTRL1000);
+
+			/* If 1gbit is supported, we are done */
+			if (gbit & ADVERTISE_1000FULL) {
+				return adv_to_net_speed(ADVERTISE_1000FULL, 0);
+			}
+
+			if (gbit & ADVERTISE_1000HALF) {
+				return adv_to_net_speed(ADVERTISE_1000HALF, 1);
+			}
+		}
+
+		speed &= ~NET_GBIT;
+		if (speed == 0) {
+			return 0;
+		}
+	}
+
+	/* Try 100mpbs/10mpbs */
+	phy_write(dev, MII_CTRL1000, 0);
 	phy_write(dev, MII_ADVERTISE, net_speed_to_adv(speed));
 
 	reg = phy_read(dev, MII_BMCR);
+
 	phy_write(dev, MII_BMCR, reg | BMCR_ANRESTART);
 
 	phy_wait_autoneg(dev);
 
 	return adv_to_net_speed(phy_read(dev, MII_LPA) &
-				phy_read(dev, MII_ADVERTISE));
+				phy_read(dev, MII_ADVERTISE), 0);
 }
 
 int phy_autoneg(struct net_device *dev, int fixed_speed) {
